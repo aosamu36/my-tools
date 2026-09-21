@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="割り勘計算">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<title>割り勘計算</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+:root {
+  --accent: #ff6b35;
+  --green: #06d6a0;
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --border: #e5e5ea;
+  --text: #1a1a1a;
+  --muted: #8e8e93;
+}
+body {
+  font-family: -apple-system, 'Hiragino Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  padding: calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 40px);
+  -webkit-font-smoothing: antialiased;
+}
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.header h1 {
+  font-size: 20px;
+  font-weight: 800;
+}
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+}
+.form-group { margin-bottom: 12px; }
+.form-group:last-child { margin-bottom: 0; }
+.form-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: block;
+}
+.form-input {
+  width: 100%;
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--text);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.form-input:focus { border-color: var(--accent); background: #fff; }
+
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+}
+
+.other-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+.other-row .form-input { flex: 1; }
+.other-row .other-name { flex: 1.3; }
+.other-row .other-price { flex: 1; }
+.remove-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #ffd6d6;
+  background: #fff0f0;
+  color: #e63262;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--bg);
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.add-btn:active { opacity: 0.7; }
+
+.result-card {
+  background: linear-gradient(135deg, #fff5f0, #f0fdf9);
+  border: 1px solid #ffd9c2;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  margin-top: 8px;
+}
+.result-total-label { font-size: 12px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+.result-total { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+.result-split-label { font-size: 12px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+.result-split { font-size: 34px; font-weight: 800; color: var(--accent); }
+.result-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+.reset-link {
+  display: block;
+  text-align: center;
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: underline;
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  font-family: inherit;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>割り勘計算</h1>
+</div>
+
+<div class="card">
+  <div class="form-group">
+    <label class="form-label">家賃（円）</label>
+    <input class="form-input" id="f-rent" type="number" inputmode="numeric" placeholder="0" oninput="onRentChange()">
+  </div>
+  <div class="form-group">
+    <label class="form-label">カード代（円）</label>
+    <input class="form-input" id="f-card" type="number" inputmode="numeric" placeholder="0" oninput="calc()">
+  </div>
+</div>
+
+<div class="card">
+  <div class="section-label">その他</div>
+  <div id="other-list"></div>
+  <button class="add-btn" onclick="addOther()">＋ 項目を追加</button>
+</div>
+
+<div class="result-card">
+  <div class="result-total-label">合計金額</div>
+  <div class="result-total" id="r-total">¥0</div>
+  <div class="result-split-label">1人あたり（2人で割り勘）</div>
+  <div class="result-split" id="r-split">¥0</div>
+</div>
+
+<button class="reset-link" onclick="resetAll()">その他・カード代をリセット</button>
+
+<script>
+var otherItems = [];
+var idCounter = 0;
+
+function fmt(n) {
+  return '¥' + Math.round(n || 0).toLocaleString('ja-JP');
+}
+
+function onRentChange() {
+  var val = document.getElementById('f-rent').value;
+  localStorage.setItem('exp_rent', val);
+  calc();
+}
+
+function addOther(name, price) {
+  var id = 'o' + (idCounter++);
+  otherItems.push({ id: id, name: name || '', price: price || '' });
+  renderOther();
+}
+
+function removeOther(id) {
+  otherItems = otherItems.filter(function (i) { return i.id !== id; });
+  renderOther();
+  calc();
+}
+
+function updateOther(id, field, value) {
+  var item = otherItems.find(function (i) { return i.id === id; });
+  if (item) item[field] = value;
+  calc();
+}
+
+function renderOther() {
+  var wrap = document.getElementById('other-list');
+  wrap.innerHTML = otherItems.map(function (item) {
+    return '<div class="other-row">'
+      + '<input class="form-input other-name" type="text" placeholder="項目名（例：飲み会代）" value="' + (item.name || '').replace(/"/g, '&quot;') + '" '
+      + 'oninput="updateOther(\'' + item.id + '\',\'name\',this.value)">'
+      + '<input class="form-input other-price" type="number" inputmode="numeric" placeholder="金額" value="' + (item.price || '') + '" '
+      + 'oninput="updateOther(\'' + item.id + '\',\'price\',this.value)">'
+      + '<button class="remove-btn" onclick="removeOther(\'' + item.id + '\')">×</button>'
+      + '</div>';
+  }).join('');
+}
+
+function calc() {
+  var rent = +document.getElementById('f-rent').value || 0;
+  var card = +document.getElementById('f-card').value || 0;
+  var otherTotal = otherItems.reduce(function (s, i) { return s + (+i.price || 0); }, 0);
+  var total = rent + card + otherTotal;
+
+  document.getElementById('r-total').textContent = fmt(total);
+  document.getElementById('r-split').textContent = fmt(total / 2);
+}
+
+function resetAll() {
+  if (!confirm('カード代とその他の項目をリセットしますか？（家賃は残ります）')) return;
+  document.getElementById('f-card').value = '';
+  otherItems = [];
+  renderOther();
+  calc();
+}
+
+// 初期化：家賃は前回の値を復元
+(function () {
+  var savedRent = localStorage.getItem('exp_rent');
+  if (savedRent) document.getElementById('f-rent').value = savedRent;
+  calc();
+})();
+</script>
+</body>
+</html>
