@@ -1232,11 +1232,11 @@ function confirmDatePicker() {
 }
 
 (function () {
-  var sheet = document.querySelector('#date-picker-modal .dp-sheet');
+  var handle = document.querySelector('#date-picker-modal .detail-handle');
   var startY = 0;
-  sheet.addEventListener('touchstart', function (e) { startY = e.touches[0].clientY; }, { passive: true });
-  sheet.addEventListener('touchend', function (e) {
-    if (e.changedTouches[0].clientY - startY > 60) closeDatePicker();
+  handle.addEventListener('touchstart', function (e) { startY = e.touches[0].clientY; }, { passive: true });
+  handle.addEventListener('touchend', function (e) {
+    if (e.changedTouches[0].clientY - startY > 40) closeDatePicker();
   }, { passive: true });
 })();
 
