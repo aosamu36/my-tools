@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<title>ログイン | my-tools</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+:root {
+  --accent: #ff6b35;
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --border: #e5e5ea;
+  --text: #1a1a1a;
+  --muted: #8e8e93;
+  --error: #e63262;
+}
+body {
+  font-family: -apple-system, 'Hiragino Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  padding-top: calc(24px + env(safe-area-inset-top));
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  -webkit-font-smoothing: antialiased;
+}
+.card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--card);
+  border-radius: 18px;
+  padding: 28px 24px;
+  border: 1px solid var(--border);
+}
+.title {
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 24px;
+}
+.form-group { margin-bottom: 14px; }
+.form-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: block;
+}
+.form-input {
+  width: 100%;
+  padding: 13px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--text);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.form-input:focus { border-color: var(--accent); background: #fff; }
+.btn-login {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  -webkit-appearance: none;
+}
+.btn-login:active { opacity: 0.75; }
+.btn-login:disabled { opacity: 0.5; }
+.error-text {
+  font-size: 13px;
+  color: var(--error);
+  text-align: center;
+  margin-top: 12px;
+  display: none;
+}
+.error-text.show { display: block; }
+.status-text {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 12px;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="title">my-tools</div>
+  <div class="subtitle">ログインしてください</div>
+
+  <div id="login-form">
+    <div class="form-group">
+      <label class="form-label">メールアドレス</label>
+      <input class="form-input" id="f-email" type="email" placeholder="you@example.com"
+        autocomplete="username" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div class="form-group">
+      <label class="form-label">パスワード</label>
+      <input class="form-input" id="f-password" type="password" placeholder="••••••••"
+        autocomplete="current-password">
+    </div>
+    <button class="btn-login" id="login-btn" onclick="login()">ログイン</button>
+    <div class="error-text" id="error-text"></div>
+  </div>
+
+  <div class="status-text" id="status-text" style="display:none">確認中...</div>
+</div>
+
+<script>
+// ================================================================
+// Supabase
+// ================================================================
+<script src="config.js"></script>
+
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function getRedirectTarget() {
+  var params = new URLSearchParams(window.location.search);
+  return params.get('redirect') || './';
+}
+
+function showError(msg) {
+  var el = document.getElementById('error-text');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+async function login() {
+  var email = document.getElementById('f-email').value.trim();
+  var password = document.getElementById('f-password').value;
+  var btn = document.getElementById('login-btn');
+
+  document.getElementById('error-text').classList.remove('show');
+
+  if (!email || !password) {
+    showError('メールアドレスとパスワードを入力してください');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'ログイン中...';
+
+  var result = await sb.auth.signInWithPassword({ email: email, password: password });
+
+  if (result.error) {
+    showError('ログインに失敗しました: ' + result.error.message);
+    btn.disabled = false;
+    btn.textContent = 'ログイン';
+    return;
+  }
+
+  window.location.href = getRedirectTarget();
+}
+
+// Enterキーでログイン
+document.getElementById('f-password').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') login();
+});
+
+// ================================================================
+// 既にログイン済みならフォームを出さずリダイレクト
+// ================================================================
+(async function init() {
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('status-text').style.display = 'block';
+
+  var { data } = await sb.auth.getSession();
+  if (data.session) {
+    window.location.href = getRedirectTarget();
+    return;
+  }
+
+  document.getElementById('login-form').style.display = 'block';
+  document.getElementById('status-text').style.display = 'none';
+})();
+</script>
+</body>
+</html>
