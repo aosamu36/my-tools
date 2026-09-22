@@ -13,6 +13,8 @@
 <title>決闘売上録</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../config.js"></script>
+<script src="../auth.js"></script>
 
 <style>
 /* ===== RESET & VARIABLES ===== */
@@ -911,18 +913,14 @@ body.modal-open { overflow: hidden; }
           <div id="settings-count">件数：-</div>
         </div>
       </div>
+      <div class="card">
+        <button class="btn-delete" style="width:100%" onclick="signOutAndRedirect('../login.html')">ログアウト</button>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-(async function requireAuth() {
-  var { data } = await sb.auth.getSession();
-  if (!data.session) {
-    window.location.href = '../login.html?redirect=' + encodeURIComponent(window.location.href);
-  }
-})();
-
 // ================================================================
 // iOS PWA: キーボード表示後のナビバーズレ修正
 // ================================================================
@@ -961,17 +959,14 @@ body.modal-open { overflow: hidden; }
 })();
 
 // ================================================================
-// Supabase
+// 認証ガード（未ログインなら共通ログインページへ）
+// getClient() は auth.js で定義済み
 // ================================================================
-<script src="../config.js"></script>
+requireAuth();
 
-var _sb = null;
-
-function getClient() {
-  if (!_sb) _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  return _sb;
-}
-
+// ================================================================
+// DB操作
+// ================================================================
 async function dbGetAll() {
   var c = getClient();
   var result = await c.from('items').select('*').order('date', { ascending: false });
