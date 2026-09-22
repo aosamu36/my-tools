@@ -3,6 +3,7 @@
   "short_name": "決闘売上録",
   "description": "トレカフリマ売上管理アプリ",
   "start_url": "./",
+  "scope": "../",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#000000",
