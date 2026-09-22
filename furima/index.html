@@ -350,6 +350,73 @@ body.modal-open { overflow: hidden; }
 }
 .btn-primary:active { opacity: 0.75; }
 
+/* ===== DATE PICKER (ホイール) ===== */
+.dp-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 450;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.dp-modal.show { opacity: 1; pointer-events: auto; }
+.dp-sheet {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.dp-modal.show .dp-sheet { transform: translateY(0); }
+.dp-title {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 16px 20px 4px;
+}
+.wheel-picker {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  height: 216px;
+  margin: 8px 20px 0;
+  overflow: hidden;
+}
+.wheel-col {
+  flex: 1;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.wheel-col::-webkit-scrollbar { display: none; }
+.wheel-item {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  font-size: 19px;
+  color: var(--muted);
+  transition: color 0.15s;
+}
+.wheel-item.selected { color: var(--text); font-weight: 800; }
+.wheel-highlight {
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%;
+  height: 36px;
+  transform: translateY(-50%);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  pointer-events: none;
+}
+.dp-footer { padding: 16px 20px 0; display: flex; gap: 10px; }
+
 /* ===== YEAR SELECT ===== */
 .year-select-wrap {
   position: relative;
@@ -719,8 +786,8 @@ body.modal-open { overflow: hidden; }
     <div class="form-row">
       <div>
         <label class="form-label">購入日時</label>
-        <input class="form-input" id="f-date" type="date"
-          autocomplete="off">
+        <div class="form-input" id="f-date-display" onclick="openDatePicker('f')" style="cursor:pointer"></div>
+        <input type="hidden" id="f-date">
       </div>
       <div>
         <label class="form-label">フリマアプリ</label>
@@ -954,6 +1021,24 @@ body.modal-open { overflow: hidden; }
   </div>
 </div>
 
+<!-- ===== DATE PICKER MODAL ===== -->
+<div class="dp-modal" id="date-picker-modal" onclick="closeDatePicker(event)">
+  <div class="dp-sheet" onclick="event.stopPropagation()">
+    <div class="detail-handle"></div>
+    <div class="dp-title">日付を選択</div>
+    <div class="wheel-picker">
+      <div class="wheel-highlight"></div>
+      <div class="wheel-col" id="wheel-year"></div>
+      <div class="wheel-col" id="wheel-month"></div>
+      <div class="wheel-col" id="wheel-day"></div>
+    </div>
+    <div class="dp-footer">
+      <button class="btn-close" onclick="closeDatePicker()">キャンセル</button>
+      <button class="btn-save" style="margin-top:0" onclick="confirmDatePicker()">決定</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ================================================================
 // iOS PWA: キーボード表示後のナビバーズレ修正
@@ -1025,6 +1110,112 @@ async function dbDelete(id) {
   var c = getClient();
   var result = await c.from('items').delete().eq('id', id);
   if (result.error) throw result.error;
+}
+
+// ================================================================
+// 日付ピッカー（iOSホイール風）
+// ================================================================
+var DP_ROW_H = 36;
+var dpTarget = null;
+var dpState = { year: null, month: null, day: null };
+var dpYears = (function () {
+  var arr = [];
+  var cy = new Date().getFullYear();
+  for (var y = cy - 5; y <= cy + 1; y++) arr.push(y);
+  return arr;
+})();
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function daysInMonth(y, m) { return new Date(y, m, 0).getDate(); }
+
+function setDpDate(prefix, isoDate) {
+  document.getElementById(prefix + '-date').value = isoDate;
+  var p = isoDate.split('-');
+  document.getElementById(prefix + '-date-display').textContent = p[0] + '年' + (+p[1]) + '月' + (+p[2]) + '日';
+}
+
+function todayIso() {
+  var t = new Date();
+  return t.getFullYear() + '-' + pad2(t.getMonth() + 1) + '-' + pad2(t.getDate());
+}
+
+function renderDpColumn(id, labels, selectedIndex) {
+  var col = document.getElementById(id);
+  var pad = '<div style="height:90px"></div>';
+  col.innerHTML = pad + labels.map(function (l) {
+    return '<div class="wheel-item">' + l + '</div>';
+  }).join('') + pad;
+  selectedIndex = Math.max(0, selectedIndex);
+  col.scrollTop = selectedIndex * DP_ROW_H;
+  highlightDp(col, selectedIndex);
+}
+
+function highlightDp(col, idx) {
+  var items = col.querySelectorAll('.wheel-item');
+  items.forEach(function (it, i) { it.classList.toggle('selected', i === idx); });
+}
+
+function bindDpScroll(id, onChange) {
+  var col = document.getElementById(id);
+  var t = null;
+  col.onscroll = function () {
+    clearTimeout(t);
+    t = setTimeout(function () {
+      var items = col.querySelectorAll('.wheel-item');
+      var idx = Math.round(col.scrollTop / DP_ROW_H);
+      idx = Math.max(0, Math.min(idx, items.length - 1));
+      col.scrollTo({ top: idx * DP_ROW_H, behavior: 'smooth' });
+      highlightDp(col, idx);
+      onChange(idx);
+    }, 120);
+  };
+}
+
+function renderDpDayColumn(y, m, preferDay) {
+  var max = daysInMonth(y, m);
+  var d = Math.min(preferDay || 1, max);
+  dpState.day = d;
+  var items = [];
+  for (var i = 1; i <= max; i++) items.push(i + '日');
+  renderDpColumn('wheel-day', items, d - 1);
+  bindDpScroll('wheel-day', function (idx) { dpState.day = idx + 1; });
+}
+
+function openDatePicker(prefix) {
+  dpTarget = prefix;
+  var iso = document.getElementById(prefix + '-date').value || todayIso();
+  var p = iso.split('-');
+  dpState = { year: +p[0], month: +p[1], day: +p[2] };
+
+  renderDpColumn('wheel-year', dpYears.map(String), dpYears.indexOf(dpState.year));
+  bindDpScroll('wheel-year', function (idx) {
+    dpState.year = dpYears[idx];
+    renderDpDayColumn(dpState.year, dpState.month, dpState.day);
+  });
+
+  renderDpColumn('wheel-month', Array.from({ length: 12 }, function (_, i) { return (i + 1) + '月'; }), dpState.month - 1);
+  bindDpScroll('wheel-month', function (idx) {
+    dpState.month = idx + 1;
+    renderDpDayColumn(dpState.year, dpState.month, dpState.day);
+  });
+
+  renderDpDayColumn(dpState.year, dpState.month, dpState.day);
+
+  document.getElementById('date-picker-modal').classList.add('show');
+  document.body.classList.add('modal-open');
+}
+
+function closeDatePicker(e) {
+  if (!e || e.target === document.getElementById('date-picker-modal')) {
+    document.getElementById('date-picker-modal').classList.remove('show');
+    document.body.classList.remove('modal-open');
+  }
+}
+
+function confirmDatePicker() {
+  var iso = dpState.year + '-' + pad2(dpState.month) + '-' + pad2(dpState.day);
+  setDpDate(dpTarget, iso);
+  closeDatePicker();
 }
 
 // ================================================================
@@ -1235,7 +1426,7 @@ function editItem(item) {
   var addBtn = document.querySelector('.nav-btn:nth-child(2)');
   showPage('add', addBtn);
   document.getElementById('f-name').value     = item.name || '';
-  document.getElementById('f-date').value     = item.date || '';
+  setDpDate('f', item.date || todayIso());
   document.getElementById('f-app').value      = item.app || 'メルカリ';
   document.getElementById('f-category').value = item.category || '遊戯王';
   document.getElementById('f-price').value    = item.price || 0;
@@ -1318,9 +1509,7 @@ function resetAddForm() {
   document.getElementById('f-profit-display').textContent = '¥0';
   document.getElementById('f-profit-display').style.color = '#06a070';
   document.getElementById('f-category').value = '遊戯王';
-  var t = new Date();
-  document.getElementById('f-date').value =
-    t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+  setDpDate('f', todayIso());
 }
 
 async function saveItem() {
@@ -1441,7 +1630,7 @@ async function handleImage(e) {
     var p = JSON.parse(jsonMatch[0]);
 
     if (p.name) document.getElementById('f-name').value = p.name;
-    if (p.date) document.getElementById('f-date').value = p.date;
+    if (p.date) setDpDate('f', p.date);
     if (p.app) {
       var keys = ['メルカリ', 'ラクマ', 'ヤフオク', 'PayPayフリマ'];
       document.getElementById('f-app').value = keys.find(function (k) { return p.app.includes(k); }) || 'メルカリ';
@@ -1735,9 +1924,7 @@ function saveSettings() {
 // 初期化
 // ================================================================
 (function () {
-  var now = new Date();
-  document.getElementById('f-date').value =
-    now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  setDpDate('f', todayIso());
 
   renderHome();
 
