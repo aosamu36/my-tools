@@ -416,6 +416,19 @@ body.modal-open { overflow: hidden; }
   pointer-events: none;
 }
 .dp-footer { padding: 16px 20px 0; display: flex; gap: 10px; }
+.btn-confirm {
+  flex: 1;
+  padding: 13px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-confirm:active { opacity: 0.75; }
 
 /* ===== YEAR SELECT ===== */
 .year-select-wrap {
@@ -1034,7 +1047,7 @@ body.modal-open { overflow: hidden; }
     </div>
     <div class="dp-footer">
       <button class="btn-close" onclick="closeDatePicker()">キャンセル</button>
-      <button class="btn-save" style="margin-top:0" onclick="confirmDatePicker()">決定</button>
+      <button class="btn-confirm" onclick="confirmDatePicker()">決定</button>
     </div>
   </div>
 </div>
@@ -1217,6 +1230,15 @@ function confirmDatePicker() {
   setDpDate(dpTarget, iso);
   closeDatePicker();
 }
+
+(function () {
+  var sheet = document.querySelector('#date-picker-modal .dp-sheet');
+  var startY = 0;
+  sheet.addEventListener('touchstart', function (e) { startY = e.touches[0].clientY; }, { passive: true });
+  sheet.addEventListener('touchend', function (e) {
+    if (e.changedTouches[0].clientY - startY > 60) closeDatePicker();
+  }, { passive: true });
+})();
 
 // ================================================================
 // 定数・ユーティリティ
