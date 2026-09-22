@@ -8,6 +8,8 @@
 <meta name="theme-color" content="#000000">
 <title>ログイン | my-tools</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
 <style>
 * {
   box-sizing: border-box;
@@ -139,13 +141,6 @@ body {
 </div>
 
 <script>
-// ================================================================
-// Supabase
-// ================================================================
-<script src="config.js"></script>
-
-var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 function getRedirectTarget() {
   var params = new URLSearchParams(window.location.search);
   return params.get('redirect') || './';
@@ -172,7 +167,7 @@ async function login() {
   btn.disabled = true;
   btn.textContent = 'ログイン中...';
 
-  var result = await sb.auth.signInWithPassword({ email: email, password: password });
+  var result = await getClient().auth.signInWithPassword({ email: email, password: password });
 
   if (result.error) {
     showError('ログインに失敗しました: ' + result.error.message);
@@ -196,7 +191,7 @@ document.getElementById('f-password').addEventListener('keydown', function (e) {
   document.getElementById('login-form').style.display = 'none';
   document.getElementById('status-text').style.display = 'block';
 
-  var { data } = await sb.auth.getSession();
+  var { data } = await getClient().auth.getSession();
   if (data.session) {
     window.location.href = getRedirectTarget();
     return;
