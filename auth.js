@@ -29,8 +29,10 @@ async function requireAuth(loginPath) {
 
 // ログアウトしてログインページへ戻す
 // 設定画面などに「ログアウト」ボタンを置く場合に使う
+// 再ログイン後、元いたアプリに戻れるよう現在地をredirectパラメータとして渡す
 async function signOutAndRedirect(loginPath) {
   loginPath = loginPath || '../login.html';
+  var returnTo = window.location.href;
   await getClient().auth.signOut();
-  window.location.href = loginPath;
+  window.location.href = loginPath + '?redirect=' + encodeURIComponent(returnTo);
 }
