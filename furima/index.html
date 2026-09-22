@@ -350,6 +350,40 @@ body.modal-open { overflow: hidden; }
 }
 .btn-primary:active { opacity: 0.75; }
 
+/* ===== YEAR SELECT ===== */
+.year-select-wrap {
+  position: relative;
+  width: 100%;
+}
+.year-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 44px 14px 18px;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.year-select:focus { border-color: var(--accent); }
+.year-select-wrap::after {
+  content: 'expand_more';
+  font-family: 'Material Icons Round';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 22px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
 /* ===== CHART ===== */
 .chart-wrap { position: relative; height: 220px; margin: 4px 0; }
 
@@ -685,8 +719,8 @@ body.modal-open { overflow: hidden; }
     <div class="form-row">
       <div>
         <label class="form-label">購入日時</label>
-        <input class="form-input" id="f-date" type="text" placeholder="2026/03/14"
-          autocomplete="off" inputmode="numeric">
+        <input class="form-input" id="f-date" type="date"
+          autocomplete="off">
       </div>
       <div>
         <label class="form-label">フリマアプリ</label>
@@ -928,9 +962,11 @@ body.modal-open { overflow: hidden; }
   function init() {
     var nav = document.getElementById('main-nav');
     if (!nav || !window.visualViewport) return;
-    var baseHeight = window.visualViewport.height;
+    var baseHeight = null;
+    var enabled = false;
 
     window.visualViewport.addEventListener('resize', function () {
+      if (!enabled) return;
       var vv = window.visualViewport;
       var diff = baseHeight - vv.height;
       if (diff > 100) {
@@ -949,6 +985,11 @@ body.modal-open { overflow: hidden; }
         nav.style.transform = 'translateY(0)';
       }, 300);
     });
+
+    setTimeout(function () {
+      baseHeight = window.visualViewport.height;
+      enabled = true;
+    }, 2600);
   }
 
   if (document.readyState === 'loading') {
@@ -1194,7 +1235,7 @@ function editItem(item) {
   var addBtn = document.querySelector('.nav-btn:nth-child(2)');
   showPage('add', addBtn);
   document.getElementById('f-name').value     = item.name || '';
-  document.getElementById('f-date').value     = (item.date || '').replace(/-/g, '/');
+  document.getElementById('f-date').value     = item.date || '';
   document.getElementById('f-app').value      = item.app || 'メルカリ';
   document.getElementById('f-category').value = item.category || '遊戯王';
   document.getElementById('f-price').value    = item.price || 0;
@@ -1221,7 +1262,7 @@ async function updateItem(oldId) {
   var item = {
     id: oldId,
     name: name,
-    date: date.replace(/\//g, '-'),
+    date: date,
     app: document.getElementById('f-app').value,
     category: document.getElementById('f-category').value,
     price: price,
@@ -1279,7 +1320,7 @@ function resetAddForm() {
   document.getElementById('f-category').value = '遊戯王';
   var t = new Date();
   document.getElementById('f-date').value =
-    t.getFullYear() + '/' + String(t.getMonth() + 1).padStart(2, '0') + '/' + String(t.getDate()).padStart(2, '0');
+    t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
 }
 
 async function saveItem() {
@@ -1298,7 +1339,7 @@ async function saveItem() {
   var item = {
     id: Date.now().toString(),
     name: name,
-    date: date.replace(/\//g, '-'),
+    date: date,
     app: document.getElementById('f-app').value,
     category: document.getElementById('f-category').value,
     price: price,
@@ -1400,7 +1441,7 @@ async function handleImage(e) {
     var p = JSON.parse(jsonMatch[0]);
 
     if (p.name) document.getElementById('f-name').value = p.name;
-    if (p.date) document.getElementById('f-date').value = p.date.replace(/-/g, '/');
+    if (p.date) document.getElementById('f-date').value = p.date;
     if (p.app) {
       var keys = ['メルカリ', 'ラクマ', 'ヤフオク', 'PayPayフリマ'];
       document.getElementById('f-app').value = keys.find(function (k) { return p.app.includes(k); }) || 'メルカリ';
@@ -1696,7 +1737,7 @@ function saveSettings() {
 (function () {
   var now = new Date();
   document.getElementById('f-date').value =
-    now.getFullYear() + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + String(now.getDate()).padStart(2, '0');
+    now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
 
   renderHome();
 
