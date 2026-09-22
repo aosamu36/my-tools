@@ -916,6 +916,13 @@ body.modal-open { overflow: hidden; }
 </div>
 
 <script>
+(async function requireAuth() {
+  var { data } = await sb.auth.getSession();
+  if (!data.session) {
+    window.location.href = '../login.html?redirect=' + encodeURIComponent(window.location.href);
+  }
+})();
+
 // ================================================================
 // iOS PWA: キーボード表示後のナビバーズレ修正
 // ================================================================
@@ -955,10 +962,8 @@ body.modal-open { overflow: hidden; }
 
 // ================================================================
 // Supabase
-// ★★★ ここを自分のプロジェクトの値に書き換えてください ★★★
 // ================================================================
-var SUPABASE_URL = 'https://jvqrnlbfcerxsfpzzaeu.supabase.co/';
-var SUPABASE_ANON_KEY = 'sb_publishable_R30FlKNmurpKt7opHXNNNw_8C4J8TDJ';
+<script src="../config.js"></script>
 
 var _sb = null;
 
