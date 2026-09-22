@@ -891,18 +891,8 @@ body.modal-open { overflow: hidden; }
     </div>
     <div class="settings-body">
       <div class="card" style="margin-bottom:12px">
-        <div class="section-label" style="margin-bottom:12px">Supabase 接続設定</div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">URLとAPIキーを入力してください。</p>
-        <div class="form-group">
-          <label class="form-label">Project URL</label>
-          <input class="form-input" id="s-url" type="text" placeholder="https://xxxx.supabase.co"
-            autocorrect="off" autocapitalize="off" spellcheck="false" autocomplete="off">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Publishable (anon) Key</label>
-          <input class="form-input" id="s-key" type="text" placeholder="sb_publishable_..."
-            autocorrect="off" autocapitalize="off" spellcheck="false" autocomplete="off">
-        </div>
+        <div class="section-label" style="margin-bottom:12px">Gemini API 設定</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Gemini APIキーを入力してください。</p>
         <div class="form-group">
           <label class="form-label">Gemini API Key</label>
           <input class="form-input" id="s-gemini" type="text" placeholder="AIza..."
@@ -965,20 +955,20 @@ body.modal-open { overflow: hidden; }
 
 // ================================================================
 // Supabase
+// ★★★ ここを自分のプロジェクトの値に書き換えてください ★★★
 // ================================================================
+var SUPABASE_URL = 'https://jvqrnlbfcerxsfpzzaeu.supabase.co/';
+var SUPABASE_ANON_KEY = 'sb_publishable_R30FlKNmurpKt7opHXNNNw_8C4J8TDJ';
+
 var _sb = null;
 
 function getClient() {
-  var url = (localStorage.getItem('sb_url') || '').replace(/\/$/, '');
-  var key = localStorage.getItem('sb_key') || '';
-  if (!url || !key) return null;
-  if (!_sb) _sb = window.supabase.createClient(url, key);
+  if (!_sb) _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   return _sb;
 }
 
 async function dbGetAll() {
   var c = getClient();
-  if (!c) throw new Error('未設定');
   var result = await c.from('items').select('*').order('date', { ascending: false });
   if (result.error) throw result.error;
   return result.data;
@@ -986,14 +976,12 @@ async function dbGetAll() {
 
 async function dbInsert(item) {
   var c = getClient();
-  if (!c) throw new Error('未設定');
   var result = await c.from('items').insert(item);
   if (result.error) throw result.error;
 }
 
 async function dbDelete(id) {
   var c = getClient();
-  if (!c) throw new Error('未設定');
   var result = await c.from('items').delete().eq('id', id);
   if (result.error) throw result.error;
 }
@@ -1670,10 +1658,8 @@ async function renderChart() {
 // 設定モーダル
 // ================================================================
 function openSettings() {
-  document.getElementById('s-url').value    = localStorage.getItem('sb_url') || '';
-  document.getElementById('s-key').value    = localStorage.getItem('sb_key') || '';
   document.getElementById('s-gemini').value = localStorage.getItem('gemini_key') || '';
-  document.getElementById('settings-url').textContent = localStorage.getItem('sb_url') || '未設定';
+  document.getElementById('settings-url').textContent = SUPABASE_URL;
 
   try {
     dbGetAll().then(function (all) {
@@ -1697,14 +1683,8 @@ function closeSettingsOutside(e) {
 }
 
 function saveSettings() {
-  var url    = document.getElementById('s-url').value.trim();
-  var key    = document.getElementById('s-key').value.trim();
   var gemini = document.getElementById('s-gemini').value.trim();
-  if (!url || !key) { toast('URLとキーを入力してください', 'error'); return; }
-  localStorage.setItem('sb_url', url);
-  localStorage.setItem('sb_key', key);
   if (gemini) localStorage.setItem('gemini_key', gemini);
-  _sb = null;
   toast('設定を保存しました');
   closeSettings();
   renderHome();
