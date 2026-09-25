@@ -44,7 +44,10 @@ body {
   padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px);
   -webkit-font-smoothing: antialiased;
 }
-body.modal-open { overflow: hidden; }
+body.modal-open { 
+  overflow: hidden;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
 
 /* ===== SPLASH ===== */
 .splash {
@@ -449,21 +452,24 @@ body.modal-open { overflow: hidden; }
 .modal-label { font-size: 13px; color: var(--muted); }
 .modal-value { font-size: 15px; font-weight: 600; }
 .modal-value.accent { color: var(--accent); font-size: 18px; font-weight: 700; }
-.modal-footer { padding: 16px 20px 0; display: flex; gap: 10px; }
-.modal-footer .btn-delete {
-  padding: 14px 12px;
-  font-size: 14px;
-  flex: 1;
+.modal-footer { 
+  padding: 16px 20px 0; 
+  display: flex; 
+  gap: 10px; 
 }
-.modal-footer .btn-close {
-  padding: 14px 12px;
-  font-size: 14px;
-  flex: 1;
-}
+.modal-footer .btn-delete,
+.modal-footer .btn-close,
 .modal-footer .btn-primary {
+  flex: 1;
   padding: 14px 12px;
   font-size: 14px;
-  flex: 1;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .debt-transaction-item {
@@ -602,23 +608,40 @@ body.modal-open { overflow: hidden; }
         <div class="section-label" style="margin-bottom:10px">取引記録</div>
         <div id="dd-transactions"></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">新規取引：金額（円）</label>
-        <input class="form-input" id="dd-add-amount" type="number" inputmode="numeric" placeholder="0">
+      <div style="margin-bottom:20px;padding-top:16px;border-top:1px solid var(--border)">
+        <div class="section-label" style="margin-bottom:10px">新規取引を追加</div>
+        <div class="form-group">
+          <label class="form-label">金額（円）</label>
+          <input class="form-input" id="dd-add-amount" type="number" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">日付</label>
+          <input class="form-input" id="dd-add-date" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">メモ（オプション）</label>
+          <input class="form-input" id="dd-add-notes" type="text" placeholder="例：飲み会代" autocomplete="off">
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">日付</label>
-        <input class="form-input" id="dd-add-date" type="date">
-      </div>
-      <div class="form-group">
-        <label class="form-label">メモ（オプション）</label>
-        <input class="form-input" id="dd-add-notes" type="text" placeholder="例：飲み会代" autocomplete="off">
+      <div style="padding-top:16px;border-top:1px solid var(--border)">
+        <div class="section-label" style="margin-bottom:10px">返済</div>
+        <div class="form-group">
+          <label class="form-label">返済金額（円）</label>
+          <input class="form-input" id="dd-repay-amount" type="number" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">日付</label>
+          <input class="form-input" id="dd-repay-date" type="date">
+        </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-delete" onclick="deleteDebtPerson()">削除</button>
       <button class="btn-close" onclick="closeDebtDetail()">閉じる</button>
       <button class="btn-primary" onclick="addDebtTransaction()">+ 追加</button>
+    </div>
+    <div class="modal-footer" style="padding-top:0;border-top:none">
+      <button class="btn-primary" onclick="repayDebt()" style="margin-bottom:0">返済</button>
     </div>
   </div>
 </div>
@@ -920,6 +943,8 @@ async function showDebtDetail(person) {
     document.getElementById('dd-add-amount').value = '';
     document.getElementById('dd-add-date').value = todayIso();
     document.getElementById('dd-add-notes').value = '';
+    document.getElementById('dd-repay-amount').value = '';
+    document.getElementById('dd-repay-date').value = todayIso();
 
     var trans = document.getElementById('dd-transactions');
     trans.innerHTML = items.map(function (i) {
@@ -931,6 +956,7 @@ async function showDebtDetail(person) {
 
     document.getElementById('debt-detail-modal').classList.add('show');
     document.body.classList.add('modal-open');
+    resetNavBar();
   } catch (e) {
     toast('読み込み失敗: ' + e.message, 'error');
   }
@@ -940,6 +966,7 @@ function closeDebtDetail(e) {
   if (!e || e.target === document.getElementById('debt-detail-modal')) {
     document.getElementById('debt-detail-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
+    resetNavBar();
   }
 }
 
@@ -982,6 +1009,28 @@ async function deleteDebtPerson() {
   }
 }
 
+async function repayDebt() {
+  var amount = +document.getElementById('dd-repay-amount').value || 0;
+  var date = document.getElementById('dd-repay-date').value;
+
+  if (!amount) { toast('返済金額を入力してください', 'error'); return; }
+
+  try {
+    await dbDebtInsert({
+      id: Date.now(),
+      person_name: currentDebtPerson,
+      amount: -amount,
+      date: date,
+      notes: '返済'
+    });
+    toast('返済しました');
+    showDebtDetail(currentDebtPerson);
+    renderDebtList();
+  } catch (e) {
+    toast('返済失敗: ' + e.message, 'error');
+  }
+}
+
 function openAddDebtPerson() {
   document.getElementById('adp-name').value = '';
   document.getElementById('adp-amount').value = '';
@@ -989,12 +1038,22 @@ function openAddDebtPerson() {
   document.getElementById('adp-notes').value = '';
   document.getElementById('add-debt-person-modal').classList.add('show');
   document.body.classList.add('modal-open');
+  resetNavBar();
 }
 
 function closeAddDebtPerson(e) {
   if (!e || e.target === document.getElementById('add-debt-person-modal')) {
     document.getElementById('add-debt-person-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
+    resetNavBar();
+  }
+}
+
+function resetNavBar() {
+  var nav = document.getElementById('main-nav');
+  if (nav) {
+    nav.style.transition = 'transform 0.25s ease';
+    nav.style.transform = 'translateY(0)';
   }
 }
 
@@ -1093,12 +1152,14 @@ async function deleteFixed(id) {
 function openSettings() {
   document.getElementById('settings-modal').classList.add('show');
   document.body.classList.add('modal-open');
+  resetNavBar();
 }
 
 function closeSettingsOutside(e) {
   if (e.target === document.getElementById('settings-modal')) {
     document.getElementById('settings-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
+    resetNavBar();
   }
 }
 
