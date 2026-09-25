@@ -82,11 +82,6 @@ body.modal-open { overflow: hidden; }
   object-fit: contain;
   filter: drop-shadow(0 1px 4px rgba(255, 180, 0, 0.4));
 }
-.header-title {
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-}
 .header-right { display: flex; align-items: center; gap: 10px; }
 
 /* ===== SETTINGS BUTTON ===== */
@@ -181,19 +176,20 @@ body.modal-open { overflow: hidden; }
   margin-bottom: 10px;
 }
 
+/* ===== BUTTONS ===== */
 .btn-primary {
   display: block;
   width: 100%;
-  padding: 14px;
+  padding: 15px;
   background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: 11px;
+  border-radius: 12px;
   font-family: inherit;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 8px;
   -webkit-appearance: none;
 }
 .btn-primary:active { opacity: 0.75; }
@@ -214,9 +210,34 @@ body.modal-open { overflow: hidden; }
 }
 .btn-secondary:active { opacity: 0.7; }
 
-/* ===== EMPTY STATE ===== */
-.empty { text-align: center; padding: 48px 20px; }
-.empty-text { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.btn-delete {
+  flex: 1;
+  padding: 13px;
+  background: #fff0f0;
+  color: #e63262;
+  border: 1px solid #ffd6d6;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-delete:active { opacity: 0.75; }
+
+.btn-close {
+  flex: 1;
+  padding: 13px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 8px;
+}
+.btn-close:active { opacity: 0.75; }
 
 /* ===== STATS GRID ===== */
 .stats-grid {
@@ -235,6 +256,10 @@ body.modal-open { overflow: hidden; }
 .stat-card.mint { background: #f0fdf9; border-color: #b3f0e3; }
 .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
 .stat-value { font-size: 22px; font-weight: 800; }
+
+/* ===== EMPTY STATE ===== */
+.empty { text-align: center; padding: 48px 20px; }
+.empty-text { font-size: 14px; color: var(--muted); line-height: 1.6; }
 
 /* ===== DEBT ITEM ===== */
 .debt-item {
@@ -350,32 +375,7 @@ body.modal-open { overflow: hidden; }
 .modal-value { font-size: 15px; font-weight: 600; }
 .modal-value.accent { color: var(--accent); font-size: 18px; font-weight: 700; }
 .modal-footer { padding: 16px 20px 0; display: flex; gap: 10px; }
-.btn-delete {
-  flex: 1;
-  padding: 13px;
-  background: #fff0f0;
-  color: #e63262;
-  border: 1px solid #ffd6d6;
-  border-radius: 12px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.btn-close {
-  flex: 1;
-  padding: 13px;
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
 
-/* ===== DEBT DETAIL ===== */
 .debt-transaction-item {
   display: flex;
   justify-content: space-between;
@@ -408,16 +408,16 @@ body.modal-open { overflow: hidden; }
 <!-- ===== PAGE: SPLIT ===== -->
 <div class="page active" id="page-split">
   <div class="card">
-    <div class="section-label">割り勘計算</div>
     <div class="form-group">
       <label class="form-label">家賃（円）</label>
-      <input class="form-input" id="f-rent" type="number" inputmode="numeric" placeholder="0" oninput="saveSplit(); calcSplit()">
+      <input class="form-input" id="f-rent" type="number" inputmode="numeric" placeholder="0" oninput="onRentChange()">
     </div>
     <div class="form-group">
       <label class="form-label">カード代（円）</label>
-      <input class="form-input" id="f-card" type="number" inputmode="numeric" placeholder="0" oninput="saveSplit(); calcSplit()">
+      <input class="form-input" id="f-card" type="number" inputmode="numeric" placeholder="0" oninput="calc()">
     </div>
   </div>
+
   <div class="stats-grid">
     <div class="stat-card pink">
       <div class="stat-label">合計金額</div>
@@ -428,22 +428,22 @@ body.modal-open { overflow: hidden; }
       <div class="stat-value" id="r-split">¥0</div>
     </div>
   </div>
+
   <div class="card">
-    <button class="btn-secondary" onclick="resetSplit()">リセット</button>
+    <button class="btn-secondary" onclick="resetSplit()">その他・カード代をリセット</button>
   </div>
 </div>
 
 <!-- ===== PAGE: DEBT ===== -->
 <div class="page" id="page-debt">
   <div class="card">
-    <div class="section-label" style="margin-bottom:16px">貸し借し管理</div>
+    <div class="section-label" style="margin-bottom:16px">貸し借り管理</div>
     <div id="debt-list">
       <div class="empty">
         <span class="material-icons-round" style="font-size:52px;color:var(--muted);display:block;text-align:center;margin-bottom:12px">account_balance_wallet</span>
-        <div class="empty-text" style="text-align:center">まだ記録がありません<br>追加から登録してね</div>
+        <div class="empty-text" style="text-align:center">まだ記録がありません<br>相手を選んでね</div>
       </div>
     </div>
-    <button class="btn-primary" onclick="openDebtAdd()">+ 記録を追加</button>
   </div>
 </div>
 
@@ -481,7 +481,7 @@ body.modal-open { overflow: hidden; }
     <span class="material-icons-round nav-icon">calculate</span>割り勘
   </button>
   <button class="nav-btn" onclick="showPage('debt', this)">
-    <span class="material-icons-round nav-icon">account_balance</span>貸し借し
+    <span class="material-icons-round nav-icon">account_balance</span>貸し借り
   </button>
   <button class="nav-btn" onclick="showPage('fixed', this)">
     <span class="material-icons-round nav-icon">receipt_long</span>固定費
@@ -489,38 +489,6 @@ body.modal-open { overflow: hidden; }
 </nav>
 
 <div class="toast" id="toast"></div>
-
-<!-- ===== DEBT ADD MODAL ===== -->
-<div class="modal" id="debt-add-modal" onclick="closeDebtAdd(event)">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title">記録を追加</div>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">相手の名前</label>
-        <input class="form-input" id="da-person" type="text" placeholder="例：Aさん" autocomplete="off">
-      </div>
-      <div class="form-group">
-        <label class="form-label">金額（円）</label>
-        <input class="form-input" id="da-amount" type="number" inputmode="numeric" placeholder="0">
-      </div>
-      <div class="form-group">
-        <label class="form-label">日付</label>
-        <input class="form-input" id="da-date" type="date">
-      </div>
-      <div class="form-group">
-        <label class="form-label">メモ（オプション）</label>
-        <input class="form-input" id="da-notes" type="text" placeholder="例：飲み会代" autocomplete="off">
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-close" onclick="closeDebtAdd()">キャンセル</button>
-      <button class="btn-primary" style="flex:1" onclick="saveDebt()">保存</button>
-    </div>
-  </div>
-</div>
 
 <!-- ===== DEBT DETAIL MODAL ===== -->
 <div class="modal" id="debt-detail-modal" onclick="closeDebtDetail(event)">
@@ -539,14 +507,22 @@ body.modal-open { overflow: hidden; }
         <div id="dd-transactions"></div>
       </div>
       <div class="form-group">
-        <label class="form-label">返済金額（円）</label>
-        <input class="form-input" id="dd-repay-amount" type="number" inputmode="numeric" placeholder="0">
+        <label class="form-label">新規取引：金額（円）</label>
+        <input class="form-input" id="dd-add-amount" type="number" inputmode="numeric" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">日付</label>
+        <input class="form-input" id="dd-add-date" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">メモ（オプション）</label>
+        <input class="form-input" id="dd-add-notes" type="text" placeholder="例：飲み会代" autocomplete="off">
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-delete" onclick="deleteDebtPerson()">削除</button>
       <button class="btn-close" onclick="closeDebtDetail()">閉じる</button>
-      <button class="btn-primary" onclick="repayDebt()" style="flex:1">返済</button>
+      <button class="btn-primary" onclick="addDebtTransaction()" style="flex:1">+ 追加</button>
     </div>
   </div>
 </div>
@@ -568,6 +544,50 @@ body.modal-open { overflow: hidden; }
 </div>
 
 <script>
+// ================================================================
+// iOS PWA: キーボード表示後のナビバーズレ修正
+// ================================================================
+(function () {
+  function init() {
+    var nav = document.getElementById('main-nav');
+    if (!nav || !window.visualViewport) return;
+    var baseHeight = null;
+    var enabled = false;
+
+    window.visualViewport.addEventListener('resize', function () {
+      if (!enabled) return;
+      var vv = window.visualViewport;
+      var diff = baseHeight - vv.height;
+      if (diff > 100) {
+        nav.style.transition = 'none';
+        nav.style.transform = 'translateY(' + diff + 'px)';
+      } else {
+        nav.style.transition = 'transform 0.25s ease';
+        nav.style.transform = 'translateY(0)';
+        baseHeight = vv.height;
+      }
+    });
+
+    window.addEventListener('orientationchange', function () {
+      setTimeout(function () {
+        baseHeight = window.visualViewport.height;
+        nav.style.transform = 'translateY(0)';
+      }, 300);
+    });
+
+    setTimeout(function () {
+      baseHeight = window.visualViewport.height;
+      enabled = true;
+    }, 2600);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+
 // ================================================================
 // 認証ガード
 // ================================================================
@@ -650,7 +670,13 @@ async function dbFixedDelete(id) {
 // ================================================================
 // 割り勘ページ
 // ================================================================
-function calcSplit() {
+function onRentChange() {
+  var val = document.getElementById('f-rent').value;
+  localStorage.setItem('wallet_rent', val);
+  calc();
+}
+
+function calc() {
   var rent = +document.getElementById('f-rent').value || 0;
   var card = +document.getElementById('f-card').value || 0;
   var total = rent + card;
@@ -658,19 +684,14 @@ function calcSplit() {
   document.getElementById('r-split').textContent = '¥' + fmt(total / 2);
 }
 
-function saveSplit() {
-  var rent = document.getElementById('f-rent').value;
-  localStorage.setItem('wallet_rent', rent);
-}
-
 function resetSplit() {
-  if (!confirm('家賃を除いてリセットしますか？')) return;
+  if (!confirm('カード代をリセットしますか？')) return;
   document.getElementById('f-card').value = '';
-  calcSplit();
+  calc();
 }
 
 // ================================================================
-// 貸し借しページ
+// 貸し借りページ
 // ================================================================
 var currentDebtPerson = null;
 
@@ -688,14 +709,14 @@ async function renderDebtList() {
       list.innerHTML =
         '<div class="empty">'
         + '<span class="material-icons-round" style="font-size:52px;color:var(--muted);display:block;text-align:center;margin-bottom:12px">account_balance_wallet</span>'
-        + '<div class="empty-text" style="text-align:center">まだ記録がありません<br>追加から登録してね</div>'
+        + '<div class="empty-text" style="text-align:center">まだ記録がありません<br>相手を選んでね</div>'
         + '</div>';
     } else {
       list.innerHTML = Object.entries(grouped).map(function (e) {
         var person = e[0];
         var items = e[1];
         var total = items.reduce(function (s, i) { return s + (+i.amount || 0); }, 0);
-        return '<div class="debt-item" onclick="showDebtDetail(\'' + person + '\')">'
+        return '<div class="debt-item" onclick="showDebtDetail(\'' + person.replace(/'/g, "\\'") + '\')">'
           + '<div class="debt-info">'
           + '<div class="debt-name">' + person + '</div>'
           + '<div class="debt-sub">' + items.length + '件</div>'
@@ -709,47 +730,6 @@ async function renderDebtList() {
   }
 }
 
-function openDebtAdd() {
-  document.getElementById('da-person').value = '';
-  document.getElementById('da-amount').value = '';
-  document.getElementById('da-date').value = todayIso();
-  document.getElementById('da-notes').value = '';
-  document.getElementById('debt-add-modal').classList.add('show');
-  document.body.classList.add('modal-open');
-}
-
-function closeDebtAdd(e) {
-  if (!e || e.target === document.getElementById('debt-add-modal')) {
-    document.getElementById('debt-add-modal').classList.remove('show');
-    document.body.classList.remove('modal-open');
-  }
-}
-
-async function saveDebt() {
-  var person = document.getElementById('da-person').value.trim();
-  var amount = +document.getElementById('da-amount').value || 0;
-  var date = document.getElementById('da-date').value;
-  var notes = document.getElementById('da-notes').value.trim();
-
-  if (!person) { toast('相手の名前を入力してください', 'error'); return; }
-  if (!amount) { toast('金額を入力してください', 'error'); return; }
-
-  try {
-    await dbDebtInsert({
-      id: Date.now(),
-      person_name: person,
-      amount: amount,
-      date: date,
-      notes: notes
-    });
-    toast('保存しました');
-    closeDebtAdd();
-    renderDebtList();
-  } catch (e) {
-    toast('保存失敗: ' + e.message, 'error');
-  }
-}
-
 async function showDebtDetail(person) {
   currentDebtPerson = person;
   try {
@@ -759,7 +739,9 @@ async function showDebtDetail(person) {
 
     document.getElementById('dd-person-name').textContent = person;
     document.getElementById('dd-total').textContent = fmt(total);
-    document.getElementById('dd-repay-amount').value = '';
+    document.getElementById('dd-add-amount').value = '';
+    document.getElementById('dd-add-date').value = todayIso();
+    document.getElementById('dd-add-notes').value = '';
 
     var trans = document.getElementById('dd-transactions');
     trans.innerHTML = items.map(function (i) {
@@ -783,29 +765,26 @@ function closeDebtDetail(e) {
   }
 }
 
-async function repayDebt() {
-  var repayAmount = +document.getElementById('dd-repay-amount').value || 0;
-  if (!repayAmount) { toast('返済金額を入力してください', 'error'); return; }
+async function addDebtTransaction() {
+  var amount = +document.getElementById('dd-add-amount').value || 0;
+  var date = document.getElementById('dd-add-date').value;
+  var notes = document.getElementById('dd-add-notes').value.trim();
+
+  if (!amount) { toast('金額を入力してください', 'error'); return; }
 
   try {
-    var all = await dbDebtGetAll();
-    var items = all.filter(function (i) { return i.person_name === currentDebtPerson; });
-    var total = items.reduce(function (s, i) { return s + (+i.amount || 0); }, 0);
-
-    if (repayAmount > total) { toast('返済金額が合計を超えています', 'error'); return; }
-
     await dbDebtInsert({
       id: Date.now(),
       person_name: currentDebtPerson,
-      amount: -repayAmount,
-      date: todayIso(),
-      notes: '返済'
+      amount: amount,
+      date: date,
+      notes: notes
     });
-    toast('返済を記録しました');
-    closeDebtDetail();
+    toast('追加しました');
+    showDebtDetail(currentDebtPerson);
     renderDebtList();
   } catch (e) {
-    toast('返済失敗: ' + e.message, 'error');
+    toast('追加失敗: ' + e.message, 'error');
   }
 }
 
@@ -908,12 +887,10 @@ function closeSettingsOutside(e) {
 // 初期化
 // ================================================================
 (function () {
-  document.getElementById('da-date').value = todayIso();
-
   var savedRent = localStorage.getItem('wallet_rent');
   if (savedRent) document.getElementById('f-rent').value = savedRent;
 
-  calcSplit();
+  calc();
   renderDebtList();
   renderFixedList();
 
@@ -923,48 +900,6 @@ function closeSettingsOutside(e) {
     s.classList.add('hide');
     setTimeout(function () { s.remove(); }, 800);
   }, 2200);
-})();
-
-// iOS PWA: キーボード表示後のナビバーズレ修正
-(function () {
-  function init() {
-    var nav = document.getElementById('main-nav');
-    if (!nav || !window.visualViewport) return;
-    var baseHeight = null;
-    var enabled = false;
-
-    window.visualViewport.addEventListener('resize', function () {
-      if (!enabled) return;
-      var vv = window.visualViewport;
-      var diff = baseHeight - vv.height;
-      if (diff > 100) {
-        nav.style.transition = 'none';
-        nav.style.transform = 'translateY(' + diff + 'px)';
-      } else {
-        nav.style.transition = 'transform 0.25s ease';
-        nav.style.transform = 'translateY(0)';
-        baseHeight = vv.height;
-      }
-    });
-
-    window.addEventListener('orientationchange', function () {
-      setTimeout(function () {
-        baseHeight = window.visualViewport.height;
-        nav.style.transform = 'translateY(0)';
-      }, 300);
-    });
-
-    setTimeout(function () {
-      baseHeight = window.visualViewport.height;
-      enabled = true;
-    }, 2600);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
 })();
 </script>
 </body>
