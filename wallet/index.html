@@ -41,7 +41,7 @@ body {
   color: var(--text);
   min-height: 100dvh;
   padding-top: calc(52px + env(safe-area-inset-top) + 8px);
-  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px);
   -webkit-font-smoothing: antialiased;
 }
 body.modal-open { overflow: hidden; }
@@ -50,7 +50,7 @@ body.modal-open { overflow: hidden; }
 .splash {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 999;
+  z-index: 1001;
   background: #000;
   opacity: 1;
   transition: opacity 0.7s ease;
@@ -63,7 +63,7 @@ body.modal-open { overflow: hidden; }
 .header {
   position: fixed;
   top: 0; left: 0; right: 0;
-  z-index: 200;
+  z-index: 998;
   background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -101,7 +101,7 @@ body.modal-open { overflow: hidden; }
 .nav {
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  z-index: 200;
+  z-index: 999;
   background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -109,6 +109,7 @@ body.modal-open { overflow: hidden; }
   display: flex;
   padding-bottom: env(safe-area-inset-bottom);
   height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  will-change: transform;
 }
 .nav-btn {
   flex: 1;
@@ -128,8 +129,17 @@ body.modal-open { overflow: hidden; }
 .nav-icon { font-size: 24px; line-height: 1; }
 
 /* ===== PAGES ===== */
-.page { display: none; padding: 16px; }
+.page { display: none; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 .page.active { display: block; }
+
+/* ===== PAGE: SPLIT SPECIFIC ===== */
+#page-split { padding-left: 20px; padding-right: 20px; }
+#page-split .page-title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
 
 /* ===== CARD ===== */
 .card {
@@ -144,7 +154,7 @@ body.modal-open { overflow: hidden; }
 .form-group { margin-bottom: 12px; }
 .form-group:last-child { margin-bottom: 0; }
 .form-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--muted);
   text-transform: uppercase;
@@ -175,6 +185,71 @@ body.modal-open { overflow: hidden; }
   letter-spacing: 0.8px;
   margin-bottom: 10px;
 }
+
+/* ===== SPLIT "その他" SECTION ===== */
+.other-section { margin-top: 16px; }
+.other-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  align-items: flex-end;
+}
+.other-item input { flex: 1; padding: 10px; font-size: 14px; }
+.other-item .other-amount { flex: 0.7; }
+.other-item button {
+  flex: 0.4;
+  padding: 10px;
+  background: #fff0f0;
+  color: #e63262;
+  border: 1px solid #ffd6d6;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-add-other {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: var(--bg);
+  border: 1.5px dashed var(--border);
+  color: var(--muted);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.btn-add-other:active { opacity: 0.7; }
+
+/* ===== RESULT CARD ===== */
+.result-card {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(6, 214, 160, 0.08) 100%);
+  border: 1px solid rgba(255, 107, 53, 0.15);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.result-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.result-total { font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 16px; }
+.result-sep { height: 1px; background: rgba(0, 0, 0, 0.08); margin: 16px 0; }
+.result-sublabel { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.result-split { font-size: 36px; font-weight: 800; color: var(--accent); }
+
+/* ===== RESET LINK ===== */
+.reset-link {
+  text-align: center;
+  padding: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  cursor: pointer;
+  display: block;
+}
+.reset-link:active { opacity: 0.6; }
 
 /* ===== BUTTONS ===== */
 .btn-primary {
@@ -317,7 +392,7 @@ body.modal-open { overflow: hidden; }
   transition: all 0.25s;
   pointer-events: none;
   white-space: nowrap;
-  z-index: 300;
+  z-index: 999;
   max-width: calc(100vw - 40px);
   text-align: center;
 }
@@ -328,7 +403,7 @@ body.modal-open { overflow: hidden; }
 .modal {
   position: fixed;
   inset: 0;
-  z-index: 400;
+  z-index: 1000;
   display: flex;
   align-items: flex-end;
   background: rgba(0, 0, 0, 0.4);
@@ -375,6 +450,21 @@ body.modal-open { overflow: hidden; }
 .modal-value { font-size: 15px; font-weight: 600; }
 .modal-value.accent { color: var(--accent); font-size: 18px; font-weight: 700; }
 .modal-footer { padding: 16px 20px 0; display: flex; gap: 10px; }
+.modal-footer .btn-delete {
+  padding: 14px 12px;
+  font-size: 14px;
+  flex: 1;
+}
+.modal-footer .btn-close {
+  padding: 14px 12px;
+  font-size: 14px;
+  flex: 1;
+}
+.modal-footer .btn-primary {
+  padding: 14px 12px;
+  font-size: 14px;
+  flex: 1;
+}
 
 .debt-transaction-item {
   display: flex;
@@ -407,6 +497,8 @@ body.modal-open { overflow: hidden; }
 
 <!-- ===== PAGE: SPLIT ===== -->
 <div class="page active" id="page-split">
+  <div class="page-title">割り勘計算</div>
+
   <div class="card">
     <div class="form-group">
       <label class="form-label">家賃（円）</label>
@@ -418,20 +510,21 @@ body.modal-open { overflow: hidden; }
     </div>
   </div>
 
-  <div class="stats-grid">
-    <div class="stat-card pink">
-      <div class="stat-label">合計金額</div>
-      <div class="stat-value" id="r-total">¥0</div>
-    </div>
-    <div class="stat-card mint">
-      <div class="stat-label">1人あたり</div>
-      <div class="stat-value" id="r-split">¥0</div>
-    </div>
+  <div class="card">
+    <div class="section-label">その他</div>
+    <div id="other-list"></div>
+    <button class="btn-add-other" onclick="addOtherItem()">+ 項目を追加</button>
   </div>
 
-  <div class="card">
-    <button class="btn-secondary" onclick="resetSplit()">その他・カード代をリセット</button>
+  <div class="result-card">
+    <div class="result-label">合計金額</div>
+    <div class="result-total" id="r-total">¥0</div>
+    <div class="result-sep"></div>
+    <div class="result-sublabel">1人あたり（2人で割り勘）</div>
+    <div class="result-split" id="r-split">¥0</div>
   </div>
+
+  <a class="reset-link" onclick="resetSplit()">その他・カード代をリセット</a>
 </div>
 
 <!-- ===== PAGE: DEBT ===== -->
@@ -444,6 +537,9 @@ body.modal-open { overflow: hidden; }
         <div class="empty-text" style="text-align:center">まだ記録がありません<br>相手を選んでね</div>
       </div>
     </div>
+  </div>
+  <div class="card">
+    <button class="btn-primary" onclick="openAddDebtPerson()">+ 相手を追加</button>
   </div>
 </div>
 
@@ -522,7 +618,39 @@ body.modal-open { overflow: hidden; }
     <div class="modal-footer">
       <button class="btn-delete" onclick="deleteDebtPerson()">削除</button>
       <button class="btn-close" onclick="closeDebtDetail()">閉じる</button>
-      <button class="btn-primary" onclick="addDebtTransaction()" style="flex:1">+ 追加</button>
+      <button class="btn-primary" onclick="addDebtTransaction()">+ 追加</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADD DEBT PERSON MODAL ===== -->
+<div class="modal" id="add-debt-person-modal" onclick="closeAddDebtPerson(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">新規相手を追加</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">相手の名前</label>
+        <input class="form-input" id="adp-name" type="text" placeholder="例：太郎" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">初期金額（円）</label>
+        <input class="form-input" id="adp-amount" type="number" inputmode="numeric" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">日付</label>
+        <input class="form-input" id="adp-date" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">メモ（オプション）</label>
+        <input class="form-input" id="adp-notes" type="text" placeholder="例：飲み会代" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-close" onclick="closeAddDebtPerson()">キャンセル</button>
+      <button class="btn-primary" onclick="saveNewDebtPerson()">追加</button>
     </div>
   </div>
 </div>
@@ -545,40 +673,51 @@ body.modal-open { overflow: hidden; }
 
 <script>
 // ================================================================
-// iOS PWA: キーボード表示後のナビバーズレ修正
+// iOS PWA: キーボード表示後のナビバーズレ修正（改善版）
 // ================================================================
 (function () {
   function init() {
     var nav = document.getElementById('main-nav');
     if (!nav || !window.visualViewport) return;
-    var baseHeight = null;
-    var enabled = false;
+    
+    var baseHeight = window.visualViewport.height;
+    var resizeTimer = null;
+
+    function resetNav() {
+      nav.style.transition = 'transform 0.25s ease';
+      nav.style.transform = 'translateY(0)';
+    }
 
     window.visualViewport.addEventListener('resize', function () {
-      if (!enabled) return;
+      clearTimeout(resizeTimer);
       var vv = window.visualViewport;
       var diff = baseHeight - vv.height;
-      if (diff > 100) {
+      
+      if (diff > 80) {
+        // キーボード表示時：ナビを上にスライド
         nav.style.transition = 'none';
         nav.style.transform = 'translateY(' + diff + 'px)';
       } else {
-        nav.style.transition = 'transform 0.25s ease';
-        nav.style.transform = 'translateY(0)';
-        baseHeight = vv.height;
+        // キーボード閉じた時：復帰
+        resizeTimer = setTimeout(resetNav, 50);
       }
     });
 
     window.addEventListener('orientationchange', function () {
+      clearTimeout(resizeTimer);
       setTimeout(function () {
         baseHeight = window.visualViewport.height;
-        nav.style.transform = 'translateY(0)';
+        resetNav();
       }, 300);
     });
 
-    setTimeout(function () {
-      baseHeight = window.visualViewport.height;
-      enabled = true;
-    }, 2600);
+    // ページ切り替え時にもリセット
+    document.querySelectorAll('.nav-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        clearTimeout(resizeTimer);
+        setTimeout(resetNav, 50);
+      });
+    });
   }
 
   if (document.readyState === 'loading') {
@@ -670,6 +809,9 @@ async function dbFixedDelete(id) {
 // ================================================================
 // 割り勘ページ
 // ================================================================
+var otherItems = [];
+var otherIdCounter = 0;
+
 function onRentChange() {
   var val = document.getElementById('f-rent').value;
   localStorage.setItem('wallet_rent', val);
@@ -679,14 +821,50 @@ function onRentChange() {
 function calc() {
   var rent = +document.getElementById('f-rent').value || 0;
   var card = +document.getElementById('f-card').value || 0;
-  var total = rent + card;
+  var otherTotal = otherItems.reduce(function (s, i) { return s + (+i.price || 0); }, 0);
+  var total = rent + card + otherTotal;
   document.getElementById('r-total').textContent = '¥' + fmt(total);
   document.getElementById('r-split').textContent = '¥' + fmt(total / 2);
 }
 
+function addOtherItem() {
+  var id = 'o' + (otherIdCounter++);
+  otherItems.push({ id: id, name: '', price: '' });
+  renderOther();
+}
+
+function renderOther() {
+  var list = document.getElementById('other-list');
+  if (otherItems.length === 0) {
+    list.innerHTML = '';
+  } else {
+    list.innerHTML = otherItems.map(function (item) {
+      return '<div class="other-item">'
+        + '<input class="form-input" type="text" placeholder="項目名" value="' + (item.name || '') + '" oninput="updateOther(\'' + item.id + '\', \'name\', this.value)">'
+        + '<input class="form-input other-amount" type="number" inputmode="numeric" placeholder="0" value="' + (item.price || '') + '" oninput="updateOther(\'' + item.id + '\', \'price\', this.value)">'
+        + '<button onclick="removeOther(\'' + item.id + '\')">削除</button>'
+        + '</div>';
+    }).join('');
+  }
+  calc();
+}
+
+function updateOther(id, field, value) {
+  var item = otherItems.find(function (i) { return i.id === id; });
+  if (item) item[field] = value;
+  calc();
+}
+
+function removeOther(id) {
+  otherItems = otherItems.filter(function (i) { return i.id !== id; });
+  renderOther();
+}
+
 function resetSplit() {
-  if (!confirm('カード代をリセットしますか？')) return;
+  if (!confirm('カード代とその他の項目をリセットしますか？（家賃は残ります）')) return;
   document.getElementById('f-card').value = '';
+  otherItems = [];
+  renderOther();
   calc();
 }
 
@@ -801,6 +979,47 @@ async function deleteDebtPerson() {
     renderDebtList();
   } catch (e) {
     toast('削除失敗: ' + e.message, 'error');
+  }
+}
+
+function openAddDebtPerson() {
+  document.getElementById('adp-name').value = '';
+  document.getElementById('adp-amount').value = '';
+  document.getElementById('adp-date').value = todayIso();
+  document.getElementById('adp-notes').value = '';
+  document.getElementById('add-debt-person-modal').classList.add('show');
+  document.body.classList.add('modal-open');
+}
+
+function closeAddDebtPerson(e) {
+  if (!e || e.target === document.getElementById('add-debt-person-modal')) {
+    document.getElementById('add-debt-person-modal').classList.remove('show');
+    document.body.classList.remove('modal-open');
+  }
+}
+
+async function saveNewDebtPerson() {
+  var name = document.getElementById('adp-name').value.trim();
+  var amount = +document.getElementById('adp-amount').value || 0;
+  var date = document.getElementById('adp-date').value;
+  var notes = document.getElementById('adp-notes').value.trim();
+
+  if (!name) { toast('相手の名前を入力してください', 'error'); return; }
+  if (!amount) { toast('金額を入力してください', 'error'); return; }
+
+  try {
+    await dbDebtInsert({
+      id: Date.now(),
+      person_name: name,
+      amount: amount,
+      date: date,
+      notes: notes
+    });
+    toast('追加しました');
+    closeAddDebtPerson();
+    renderDebtList();
+  } catch (e) {
+    toast('追加失敗: ' + e.message, 'error');
   }
 }
 
