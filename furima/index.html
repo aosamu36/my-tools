@@ -1108,20 +1108,20 @@ requireAuth();
 // ================================================================
 async function dbGetAll() {
   var c = getClient();
-  var result = await c.from('items').select('*').order('date', { ascending: false });
+  var result = await c.from('furima_items').select('*').order('date', { ascending: false });
   if (result.error) throw result.error;
   return result.data;
 }
 
 async function dbInsert(item) {
   var c = getClient();
-  var result = await c.from('items').insert(item);
+  var result = await c.from('furima_items').insert(item);
   if (result.error) throw result.error;
 }
 
 async function dbDelete(id) {
   var c = getClient();
-  var result = await c.from('items').delete().eq('id', id);
+  var result = await c.from('furima_items').delete().eq('id', id);
   if (result.error) throw result.error;
 }
 
@@ -1490,7 +1490,7 @@ async function updateItem(oldId) {
 
   try {
     var c = getClient();
-    var result = await c.from('items').update(item).eq('id', oldId);
+    var result = await c.from('furima_items').update(item).eq('id', oldId);
     if (result.error) throw result.error;
     toast('更新しました！');
     var saveBtn = document.querySelector('.btn-save');
