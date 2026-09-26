@@ -53,7 +53,7 @@ body.modal-open {
 .splash {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 1001;
+  z-index: 1002;
   background: #000;
   opacity: 1;
   transition: opacity 0.7s ease;
@@ -400,7 +400,7 @@ body.modal-open {
   transition: all 0.25s;
   pointer-events: none;
   white-space: nowrap;
-  z-index: 999;
+  z-index: 1001;
   max-width: calc(100vw - 40px);
   text-align: center;
 }
@@ -636,7 +636,7 @@ body.modal-open {
         <div id="dd-transactions"></div>
       </div>
       <div style="margin-bottom:20px;padding-top:16px;border-top:1px solid var(--border)">
-        <div class="section-label" style="margin-bottom:10px">新規取引を追加</div>
+        <div class="section-label" style="margin-bottom:10px">追加</div>
         <div class="form-group">
           <label class="form-label">金額（円）</label>
           <input class="form-input" id="dd-add-amount" type="number" inputmode="numeric" placeholder="0">
@@ -646,29 +646,27 @@ body.modal-open {
           <input class="form-input" id="dd-add-date" type="date">
         </div>
         <div class="form-group">
-          <label class="form-label">メモ（オプション）</label>
+          <label class="form-label">メモ</label>
           <input class="form-input" id="dd-add-notes" type="text" placeholder="例：飲み会代" autocomplete="off">
         </div>
       </div>
       <div style="padding-top:16px;border-top:1px solid var(--border)">
         <div class="section-label" style="margin-bottom:10px">返済</div>
         <div class="form-group">
-          <label class="form-label">返済金額（円）</label>
+          <label class="form-label">金額（円）</label>
           <input class="form-input" id="dd-repay-amount" type="number" inputmode="numeric" placeholder="0">
         </div>
         <div class="form-group">
           <label class="form-label">日付</label>
           <input class="form-input" id="dd-repay-date" type="date">
         </div>
+        <button class="btn-primary" onclick="repayDebt()" style="width:100%;margin-top:12px">返済する</button>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-delete" onclick="deleteDebtPerson()">削除</button>
       <button class="btn-close" onclick="closeDebtDetail()">閉じる</button>
       <button class="btn-primary" onclick="addDebtTransaction()">+ 追加</button>
-    </div>
-    <div class="modal-footer" style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px">
-      <button class="btn-primary" onclick="repayDebt()" style="margin-bottom:0">返済</button>
     </div>
   </div>
 </div>
