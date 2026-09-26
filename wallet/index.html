@@ -296,6 +296,21 @@ body.modal-open {
 }
 .btn-section:active { opacity: 0.75; }
 
+.btn-small {
+  padding: 6px 12px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.btn-small:active { opacity: 0.75; }
+
 .btn-secondary {
   display: block;
   width: 100%;
@@ -479,7 +494,8 @@ body.modal-open {
 .modal-value { font-size: 15px; font-weight: 600; }
 .modal-value.accent { color: var(--accent); font-size: 18px; font-weight: 700; }
 .modal-footer { 
-  padding: 16px 20px 0; 
+  padding: 16px 20px 0;
+  border-top: 1px solid var(--border);
   display: flex; 
   gap: 10px; 
 }
