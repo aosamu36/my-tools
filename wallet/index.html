@@ -773,67 +773,58 @@ body.modal-open {
   function init() {
     var nav = document.getElementById('main-nav');
     if (!nav || !window.visualViewport) return;
-    
-    var baseHeight = window.visualViewport.height;
-    var resizeTimer = null;
-    var isModalOpen = false;
 
-    function resetNav() {
-      nav.style.transition = 'transform 0.25s ease';
-      nav.style.transform = 'translateY(0)';
+    var rafId = null;
+
+    // baseHeightをキャッシュせず、毎回 window.innerHeight（レイアウトビューポート、
+    // アドレスバーの伸縮に影響されない）とvisualViewportの差分から直接計算する。
+    // これにより、キーボードを閉じた後にナビバーの位置がズレる不具合を解消する。
+    function applyNavOffset() {
+      var vv = window.visualViewport;
+      var keyboardHeight = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+
+      if (keyboardHeight > 80) {
+        nav.style.transition = 'none';
+        nav.style.transform = 'translateY(' + keyboardHeight + 'px)';
+      } else {
+        nav.style.transition = 'transform 0.25s ease';
+        nav.style.transform = 'translateY(0)';
+      }
     }
 
-    window.visualViewport.addEventListener('resize', function () {
-      clearTimeout(resizeTimer);
-      var vv = window.visualViewport;
-      var diff = baseHeight - vv.height;
-      
-      if (diff > 80) {
-        // キーボード表示時：ナビを上にスライド
-        nav.style.transition = 'none';
-        nav.style.transform = 'translateY(' + diff + 'px)';
-      } else {
-        // キーボード閉じた時：復帰
-        resizeTimer = setTimeout(function () {
-          resetNav();
-          // モーダルが開いている場合、スクロール位置をリセット
-          if (isModalOpen) {
-            var sheet = document.querySelector('.modal.show .modal-sheet');
-            if (sheet) {
-              setTimeout(function () {
-                sheet.scrollTop = sheet.scrollTop;
-              }, 50);
-            }
-          }
-        }, 50);
-      }
-    });
+    function scheduleUpdate() {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(applyNavOffset);
+    }
+
+    window.visualViewport.addEventListener('resize', scheduleUpdate);
+    window.visualViewport.addEventListener('scroll', scheduleUpdate);
 
     window.addEventListener('orientationchange', function () {
-      clearTimeout(resizeTimer);
-      setTimeout(function () {
-        baseHeight = window.visualViewport.height;
-        resetNav();
-      }, 300);
+      setTimeout(applyNavOffset, 300);
     });
 
     // ページ切り替え時にもリセット
     document.querySelectorAll('.nav-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        clearTimeout(resizeTimer);
-        setTimeout(resetNav, 50);
+        setTimeout(applyNavOffset, 50);
       });
     });
 
-    // モーダル開閉を監視
-    var observer = new MutationObserver(function () {
-      isModalOpen = document.querySelector('.modal.show') !== null;
-    });
-    observer.observe(document.body, { 
-      subtree: true, 
-      attributes: true, 
-      attributeFilter: ['class'] 
-    });
+    // 入力欄からフォーカスが外れてキーボードが閉じるタイミングは
+    // visualViewportのイベントが遅れて発火することがあるため、
+    // focusout時にも念のため複数回再計算する（iOSのアニメーション対策）。
+    document.addEventListener('focusout', function (e) {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+        setTimeout(applyNavOffset, 100);
+        setTimeout(applyNavOffset, 350);
+      }
+    }, true);
+
+    // resetNavBar()など他の箇所からも同じロジックで再計算できるように公開
+    window.__syncNavPosition = applyNavOffset;
+
+    applyNavOffset();
   }
 
   if (document.readyState === 'loading') {
@@ -1143,12 +1134,13 @@ function closeAddDebtPerson(e) {
 }
 
 function resetNavBar() {
-  var nav = document.getElementById('main-nav');
-  if (nav) {
-    nav.style.transition = 'transform 0.25s ease';
-    nav.style.transform = 'translateY(0)';
+  // ナビの位置は共通ロジック（__syncNavPosition）に計算させる。
+  // ここで直接translateY(0)を強制すると、キーボードを閉じるアニメーションの
+  // 途中で位置がズレたまま固定されてしまうことがあるため使わない。
+  if (window.__syncNavPosition) {
+    window.__syncNavPosition();
   }
-  
+
   // モーダルが開いている場合、キーボード由来のフォーカスをクリア
   var activeModal = document.querySelector('.modal.show');
   if (activeModal) {
@@ -1157,6 +1149,7 @@ function resetNavBar() {
       // キーボードが完全に閉じたタイミングでblur
       setTimeout(function () {
         activeInput.blur();
+        if (window.__syncNavPosition) window.__syncNavPosition();
       }, 100);
     }
   }
