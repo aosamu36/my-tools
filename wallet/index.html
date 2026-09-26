@@ -78,6 +78,10 @@ body.modal-open {
   padding-right: 18px;
   padding-top: env(safe-area-inset-top);
   height: calc(52px + env(safe-area-inset-top));
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .header-logo {
   height: 38px;
@@ -113,6 +117,12 @@ body.modal-open {
   padding-bottom: env(safe-area-inset-bottom);
   height: calc(var(--nav-h) + env(safe-area-inset-bottom));
   will-change: transform;
+  /* モーダルのスライドアニメーションと同時に描画がズレるiOSの既知の不具合対策:
+     独立したGPUレイヤーに強制的に分離する */
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .nav-btn {
   flex: 1;
@@ -459,6 +469,9 @@ body.modal-open {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s;
+  isolation: isolate;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
 }
 .modal.show { opacity: 1; pointer-events: auto; }
 .modal-sheet {
@@ -469,13 +482,15 @@ body.modal-open {
   overflow-y: auto;
   overflow-x: hidden;
   padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
-  transform: translateY(100%);
+  transform: translate3d(0, 100%, 0);
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
-.modal.show .modal-sheet { transform: translateY(0); }
+.modal.show .modal-sheet { transform: translate3d(0, 0, 0); }
 .modal-handle {
   width: 36px;
   height: 4px;
@@ -1001,9 +1016,9 @@ async function showDebtDetail(person) {
         + '</div>';
     }).join('');
 
-    document.getElementById('debt-detail-modal').classList.add('show');
-    document.body.classList.add('modal-open');
     window.__lockBodyScroll();
+    document.body.classList.add('modal-open');
+    document.getElementById('debt-detail-modal').classList.add('show');
     resetNavBar();
   } catch (e) {
     toast('読み込み失敗: ' + e.message, 'error');
@@ -1014,7 +1029,7 @@ function closeDebtDetail(e) {
   if (!e || e.target === document.getElementById('debt-detail-modal')) {
     document.getElementById('debt-detail-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
-    window.__unlockBodyScroll();
+    setTimeout(window.__unlockBodyScroll, 300);
     resetNavBar();
   }
 }
@@ -1085,9 +1100,9 @@ function openAddDebtPerson() {
   document.getElementById('adp-amount').value = '';
   document.getElementById('adp-date').value = todayIso();
   document.getElementById('adp-notes').value = '';
-  document.getElementById('add-debt-person-modal').classList.add('show');
-  document.body.classList.add('modal-open');
   window.__lockBodyScroll();
+  document.body.classList.add('modal-open');
+  document.getElementById('add-debt-person-modal').classList.add('show');
   resetNavBar();
 }
 
@@ -1095,7 +1110,7 @@ function closeAddDebtPerson(e) {
   if (!e || e.target === document.getElementById('add-debt-person-modal')) {
     document.getElementById('add-debt-person-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
-    window.__unlockBodyScroll();
+    setTimeout(window.__unlockBodyScroll, 300);
     resetNavBar();
   }
 }
@@ -1206,9 +1221,9 @@ async function deleteFixed(id) {
 // 設定モーダル
 // ================================================================
 function openSettings() {
-  document.getElementById('settings-modal').classList.add('show');
-  document.body.classList.add('modal-open');
   window.__lockBodyScroll();
+  document.body.classList.add('modal-open');
+  document.getElementById('settings-modal').classList.add('show');
   resetNavBar();
 }
 
@@ -1216,7 +1231,7 @@ function closeSettingsOutside(e) {
   if (e.target === document.getElementById('settings-modal')) {
     document.getElementById('settings-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
-    window.__unlockBodyScroll();
+    setTimeout(window.__unlockBodyScroll, 300);
     resetNavBar();
   }
 }
