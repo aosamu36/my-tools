@@ -655,7 +655,10 @@ body.modal-open {
         <div id="dd-transactions"></div>
       </div>
       <div style="padding-top:16px;border-top:1px solid var(--border);margin-bottom:16px">
-        <div class="section-label" style="margin-bottom:10px">追加</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="section-label" style="margin:0">追加</div>
+          <button class="btn-small" onclick="addDebtTransaction()">+ 追加</button>
+        </div>
         <div class="form-group">
           <label class="form-label">金額（円）</label>
           <input class="form-input" id="dd-add-amount" type="number" inputmode="numeric" placeholder="0">
@@ -668,10 +671,12 @@ body.modal-open {
           <label class="form-label">メモ</label>
           <input class="form-input" id="dd-add-notes" type="text" placeholder="例：飲み会代" autocomplete="off">
         </div>
-        <button class="btn-section" onclick="addDebtTransaction()">+ 追加する</button>
       </div>
       <div style="padding-top:16px;border-top:1px solid var(--border)">
-        <div class="section-label" style="margin-bottom:10px">返済</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="section-label" style="margin:0">返済</div>
+          <button class="btn-small" onclick="repayDebt()">返済する</button>
+        </div>
         <div class="form-group">
           <label class="form-label">金額（円）</label>
           <input class="form-input" id="dd-repay-amount" type="number" inputmode="numeric" placeholder="0">
@@ -680,7 +685,6 @@ body.modal-open {
           <label class="form-label">日付</label>
           <input class="form-input" id="dd-repay-date" type="date">
         </div>
-        <button class="btn-section" onclick="repayDebt()">返済する</button>
       </div>
     </div>
     <div class="modal-footer">
