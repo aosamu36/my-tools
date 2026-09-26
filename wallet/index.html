@@ -464,24 +464,39 @@ body.modal-open {
   display: flex; 
   gap: 10px; 
 }
-.modal-footer .btn-delete,
-.modal-footer .btn-close,
+.modal-footer button {
+  flex: 1 !important;
+  width: auto !important;
+  height: 48px !important;
+  padding: 0 8px !important;
+  margin: 0 !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  border: none !important;
+  font-family: inherit !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.modal-footer .btn-delete {
+  background: #fff0f0 !important;
+  color: #e63262 !important;
+  border: 1px solid #ffd6d6 !important;
+}
+.modal-footer .btn-close {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
 .modal-footer .btn-primary {
-  flex: 1;
-  padding: 0;
-  min-height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
-  border-radius: 12px;
-  cursor: pointer;
-  border: none;
-  font-family: inherit;
-  -webkit-appearance: none;
-  appearance: none;
-  line-height: 1;
+  background: var(--accent) !important;
+  color: #fff !important;
 }
 
 .debt-transaction-item {
