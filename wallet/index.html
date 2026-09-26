@@ -1279,9 +1279,6 @@ function closeSettingsOutside(e) {
   renderDebtList();
   renderFixedList();
 
-  // モーダル内のinput要素にフォーカス時スクロール対応
-  setupModalInputScroll();
-
   // スプラッシュ非表示
   setTimeout(function () {
     var s = document.getElementById('splash');
@@ -1289,32 +1286,6 @@ function closeSettingsOutside(e) {
     setTimeout(function () { s.remove(); }, 800);
   }, 2200);
 })();
-
-// ================================================================
-// モーダル内input フォーカス時スクロール
-// ================================================================
-function setupModalInputScroll() {
-  var debtDetailModal = document.getElementById('debt-detail-modal');
-  var addDebtPersonModal = document.getElementById('add-debt-person-modal');
-  
-  function setupInputsInModal(modal) {
-    if (!modal) return;
-    var inputs = modal.querySelectorAll('input');
-    inputs.forEach(function (input) {
-      input.addEventListener('focus', function () {
-        var sheet = modal.querySelector('.modal-sheet');
-        if (sheet) {
-          setTimeout(function () {
-            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 100);
-        }
-      });
-    });
-  }
-  
-  setupInputsInModal(debtDetailModal);
-  setupInputsInModal(addDebtPersonModal);
-}
 </script>
 </body>
 </html>
