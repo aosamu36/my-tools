@@ -277,6 +277,25 @@ body.modal-open {
 }
 .btn-primary:active { opacity: 0.75; }
 
+.btn-section {
+  display: block;
+  width: calc(100% - 20px);
+  max-width: 100%;
+  margin: 12px auto 0;
+  padding: 14px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.btn-section:active { opacity: 0.75; }
+
 .btn-secondary {
   display: block;
   width: 100%;
@@ -635,7 +654,7 @@ body.modal-open {
         <div class="section-label" style="margin-bottom:10px">取引記録</div>
         <div id="dd-transactions"></div>
       </div>
-      <div style="margin-bottom:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="padding-top:16px;border-top:1px solid var(--border);margin-bottom:16px">
         <div class="section-label" style="margin-bottom:10px">追加</div>
         <div class="form-group">
           <label class="form-label">金額（円）</label>
@@ -649,6 +668,7 @@ body.modal-open {
           <label class="form-label">メモ</label>
           <input class="form-input" id="dd-add-notes" type="text" placeholder="例：飲み会代" autocomplete="off">
         </div>
+        <button class="btn-section" onclick="addDebtTransaction()">+ 追加する</button>
       </div>
       <div style="padding-top:16px;border-top:1px solid var(--border)">
         <div class="section-label" style="margin-bottom:10px">返済</div>
@@ -660,13 +680,12 @@ body.modal-open {
           <label class="form-label">日付</label>
           <input class="form-input" id="dd-repay-date" type="date">
         </div>
-        <button class="btn-primary" onclick="repayDebt()" style="width:100%;margin-top:12px">返済する</button>
+        <button class="btn-section" onclick="repayDebt()">返済する</button>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-delete" onclick="deleteDebtPerson()">削除</button>
       <button class="btn-close" onclick="closeDebtDetail()">閉じる</button>
-      <button class="btn-primary" onclick="addDebtTransaction()">+ 追加</button>
     </div>
   </div>
 </div>
