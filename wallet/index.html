@@ -770,68 +770,47 @@ body.modal-open {
 // iOS PWA: キーボード表示後のナビバーズレ修正（改善版）
 // ================================================================
 (function () {
-  function init() {
-    var nav = document.getElementById('main-nav');
-    if (!nav || !window.visualViewport) return;
+  var nav = document.getElementById('main-nav');
 
-    var rafId = null;
-
-    // baseHeightをキャッシュせず、毎回 window.innerHeight（レイアウトビューポート、
-    // アドレスバーの伸縮に影響されない）とvisualViewportの差分から直接計算する。
-    // これにより、キーボードを閉じた後にナビバーの位置がズレる不具合を解消する。
-    function applyNavOffset() {
-      var vv = window.visualViewport;
-      var keyboardHeight = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
-
-      if (keyboardHeight > 80) {
-        nav.style.transition = 'none';
-        nav.style.transform = 'translateY(' + keyboardHeight + 'px)';
-      } else {
-        nav.style.transition = 'transform 0.25s ease';
-        nav.style.transform = 'translateY(0)';
-      }
-    }
-
-    function scheduleUpdate() {
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(applyNavOffset);
-    }
-
-    window.visualViewport.addEventListener('resize', scheduleUpdate);
-    window.visualViewport.addEventListener('scroll', scheduleUpdate);
-
-    window.addEventListener('orientationchange', function () {
-      setTimeout(applyNavOffset, 300);
-    });
-
-    // ページ切り替え時にもリセット
-    document.querySelectorAll('.nav-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        setTimeout(applyNavOffset, 50);
-      });
-    });
-
-    // 入力欄からフォーカスが外れてキーボードが閉じるタイミングは
-    // visualViewportのイベントが遅れて発火することがあるため、
-    // focusout時にも念のため複数回再計算する（iOSのアニメーション対策）。
-    document.addEventListener('focusout', function (e) {
-      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-        setTimeout(applyNavOffset, 100);
-        setTimeout(applyNavOffset, 350);
-      }
-    }, true);
-
-    // resetNavBar()など他の箇所からも同じロジックで再計算できるように公開
-    window.__syncNavPosition = applyNavOffset;
-
-    applyNavOffset();
+  // 「入力中はナビを画面外にずらす」という処理をやめ、キーボードが閉じた後に
+  // 強制的に位置をリセットする処理だけを残す。
+  // 前回の修正でキーボード表示中にJSでtransformを当てていたが、これがiOS自体の
+  // フォーカス時の自動スクロール／固定要素の扱いと衝突し、閉じたあとにナビが
+  // 浮いたまま（上にズレたまま）残る原因になっていた可能性が高いため撤去する。
+  function forceResetNav() {
+    if (!nav) return;
+    window.scrollTo(0, 0);
+    nav.style.transition = 'none';
+    nav.style.transform = 'none';
+    // 強制的にリフローさせる（iOSでposition:fixed要素の描画が
+    // キーボード開閉後にズレたまま残る既知の不具合への対策）
+    void nav.offsetHeight;
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  // 入力欄からフォーカスが外れてキーボードが閉じるタイミングは
+  // 閉じるアニメーションに時間差があるため、複数回に分けて補正する
+  document.addEventListener('focusout', function (e) {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+      setTimeout(forceResetNav, 50);
+      setTimeout(forceResetNav, 200);
+      setTimeout(forceResetNav, 400);
+      setTimeout(forceResetNav, 700);
+    }
+  }, true);
+
+  window.addEventListener('orientationchange', function () {
+    setTimeout(forceResetNav, 300);
+  });
+
+  // ページ切り替え時にも念のため補正
+  document.querySelectorAll('.nav-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      setTimeout(forceResetNav, 50);
+    });
+  });
+
+  // resetNavBar()など他の箇所からも同じロジックを呼べるように公開
+  window.__syncNavPosition = forceResetNav;
 })();
 
 // ================================================================
