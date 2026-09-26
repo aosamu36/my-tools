@@ -766,52 +766,36 @@ body.modal-open {
 </div>
 
 <script>
-// ================================================================
-// iOS PWA: キーボード表示後のナビバーズレ修正（改善版）
-// ================================================================
 (function () {
-  var nav = document.getElementById('main-nav');
+  var savedScrollY = 0;
 
-  // 「入力中はナビを画面外にずらす」という処理をやめ、キーボードが閉じた後に
-  // 強制的に位置をリセットする処理だけを残す。
-  // 前回の修正でキーボード表示中にJSでtransformを当てていたが、これがiOS自体の
-  // フォーカス時の自動スクロール／固定要素の扱いと衝突し、閉じたあとにナビが
-  // 浮いたまま（上にズレたまま）残る原因になっていた可能性が高いため撤去する。
-  function forceResetNav() {
-    if (!nav) return;
-    window.scrollTo(0, 0);
-    nav.style.transition = 'none';
-    nav.style.transform = 'none';
-    // 強制的にリフローさせる（iOSでposition:fixed要素の描画が
-    // キーボード開閉後にズレたまま残る既知の不具合への対策）
-    void nav.offsetHeight;
-  }
+  // iOSは、モーダル(スクロール可能なシート)の中の入力欄にフォーカスすると、
+  // 背面のページ本体がまだスクロール／リサイズ可能な状態のままキーボードを
+  // 表示しようとするため、position:fixedのナビ(フッター)がその過程で
+  // 一瞬ズレて描画されてしまう。
+  // これを防ぐ定番の対策として、モーダルを開いている間はbodyをposition:fixedで
+  // 固定してスクロール自体を封じ込める(いわゆる「スクロールロック」)。
+  // ナビはbodyではなくビューポートに対してfixedなので、この間も位置は動かない。
+  window.__lockBodyScroll = function () {
+    savedScrollY = window.scrollY || window.pageYOffset || 0;
+    document.body.style.position = 'fixed';
+    document.body.style.top = (-savedScrollY) + 'px';
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+  };
 
-  // 入力欄からフォーカスが外れてキーボードが閉じるタイミングは
-  // 閉じるアニメーションに時間差があるため、複数回に分けて補正する
-  document.addEventListener('focusout', function (e) {
-    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-      setTimeout(forceResetNav, 50);
-      setTimeout(forceResetNav, 200);
-      setTimeout(forceResetNav, 400);
-      setTimeout(forceResetNav, 700);
-    }
-  }, true);
-
-  window.addEventListener('orientationchange', function () {
-    setTimeout(forceResetNav, 300);
-  });
-
-  // ページ切り替え時にも念のため補正
-  document.querySelectorAll('.nav-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      setTimeout(forceResetNav, 50);
-    });
-  });
-
-  // resetNavBar()など他の箇所からも同じロジックを呼べるように公開
-  window.__syncNavPosition = forceResetNav;
+  window.__unlockBodyScroll = function () {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    window.scrollTo(0, savedScrollY);
+  };
 })();
+
+
 
 // ================================================================
 // 認証ガード
@@ -1019,6 +1003,7 @@ async function showDebtDetail(person) {
 
     document.getElementById('debt-detail-modal').classList.add('show');
     document.body.classList.add('modal-open');
+    window.__lockBodyScroll();
     resetNavBar();
   } catch (e) {
     toast('読み込み失敗: ' + e.message, 'error');
@@ -1029,6 +1014,7 @@ function closeDebtDetail(e) {
   if (!e || e.target === document.getElementById('debt-detail-modal')) {
     document.getElementById('debt-detail-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
+    window.__unlockBodyScroll();
     resetNavBar();
   }
 }
@@ -1101,6 +1087,7 @@ function openAddDebtPerson() {
   document.getElementById('adp-notes').value = '';
   document.getElementById('add-debt-person-modal').classList.add('show');
   document.body.classList.add('modal-open');
+  window.__lockBodyScroll();
   resetNavBar();
 }
 
@@ -1108,28 +1095,20 @@ function closeAddDebtPerson(e) {
   if (!e || e.target === document.getElementById('add-debt-person-modal')) {
     document.getElementById('add-debt-person-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
+    window.__unlockBodyScroll();
     resetNavBar();
   }
 }
 
 function resetNavBar() {
-  // ナビの位置は共通ロジック（__syncNavPosition）に計算させる。
-  // ここで直接translateY(0)を強制すると、キーボードを閉じるアニメーションの
-  // 途中で位置がズレたまま固定されてしまうことがあるため使わない。
-  if (window.__syncNavPosition) {
-    window.__syncNavPosition();
-  }
-
-  // モーダルが開いている場合、キーボード由来のフォーカスをクリア
+  // ナビの位置ズレ対策はモーダル開閉時のスクロールロック(__lockBodyScroll /
+  // __unlockBodyScroll)側で行っているため、ここでは開いたままのキーボードを
+  // 閉じる処理だけを担当する。
   var activeModal = document.querySelector('.modal.show');
   if (activeModal) {
     var activeInput = activeModal.querySelector('input:focus, textarea:focus');
     if (activeInput && document.activeElement === activeInput) {
-      // キーボードが完全に閉じたタイミングでblur
-      setTimeout(function () {
-        activeInput.blur();
-        if (window.__syncNavPosition) window.__syncNavPosition();
-      }, 100);
+      activeInput.blur();
     }
   }
 }
@@ -1229,6 +1208,7 @@ async function deleteFixed(id) {
 function openSettings() {
   document.getElementById('settings-modal').classList.add('show');
   document.body.classList.add('modal-open');
+  window.__lockBodyScroll();
   resetNavBar();
 }
 
@@ -1236,6 +1216,7 @@ function closeSettingsOutside(e) {
   if (e.target === document.getElementById('settings-modal')) {
     document.getElementById('settings-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
+    window.__unlockBodyScroll();
     resetNavBar();
   }
 }
