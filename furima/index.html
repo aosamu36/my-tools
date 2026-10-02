@@ -1066,37 +1066,8 @@ body.modal-open {
 
 <script>
 // ================================================================
-// iOS PWA: モーダル表示中のスクロールロック（ナビのズレ対策）
-// モーダルを開いている間、bodyをposition:fixedで固定する。
+// (スクロールロック不要 - シンプルなoverflow:hiddenで対応)
 // ================================================================
-(function () {
-  var locked = false;
-  window.__savedY = 0;
-
-  window.__lockBodyScroll = function () {
-    if (locked) return;
-    locked = true;
-    window.__savedY = window.scrollY || 0;
-    var s = document.body.style;
-    s.position = 'fixed';
-    s.top = (-window.__savedY) + 'px';
-    s.left = '0';
-    s.right = '0';
-    s.width = '100%';
-  };
-
-  window.__unlockBodyScroll = function () {
-    if (!locked) return;
-    locked = false;
-    var s = document.body.style;
-    s.position = '';
-    s.top = '';
-    s.left = '';
-    s.right = '';
-    s.width = '';
-    window.scrollTo(0, window.__savedY);
-  };
-})();
 
 // ================================================================
 // 認証ガード（未ログインなら共通ログインページへ）
@@ -1215,7 +1186,6 @@ function openDatePicker(prefix) {
 
   renderDpDayColumn(dpState.year, dpState.month, dpState.day);
 
-  window.__lockBodyScroll();
   document.getElementById('date-picker-modal').classList.add('show');
   document.body.classList.add('modal-open');
 }
@@ -1224,7 +1194,6 @@ function closeDatePicker(e) {
   if (!e || e.target === document.getElementById('date-picker-modal')) {
     document.getElementById('date-picker-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
-    setTimeout(window.__unlockBodyScroll, 300);
   }
 }
 
@@ -1417,7 +1386,6 @@ function showDetail(el) {
   document.getElementById('d-delete-btn').onclick = function () { closeDetail(); deleteItem(item.id); };
   document.getElementById('d-edit-btn').onclick   = function () { closeDetail(); editItem(item); };
 
-  window.__lockBodyScroll();
   document.getElementById('detail-modal').classList.add('show');
   document.body.classList.add('modal-open');
 
@@ -1431,7 +1399,6 @@ function closeDetail(e) {
   if (!e || e.target === document.getElementById('detail-modal')) {
     document.getElementById('detail-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
-    setTimeout(window.__unlockBodyScroll, 300);
   }
 }
 
@@ -1452,7 +1419,6 @@ async function deleteItem(id) {
 function editItem(item) {
   var addBtn = document.querySelector('.nav-btn:nth-child(2)');
   showPage('add', addBtn);
-  window.__savedY = 0;
   document.getElementById('f-name').value     = item.name || '';
   setDpDate('f', item.date || todayIso());
   document.getElementById('f-app').value      = item.app || 'メルカリ';
@@ -1927,7 +1893,6 @@ function openSettings() {
     document.getElementById('settings-count').textContent = '件数：接続エラー';
   }
 
-  window.__lockBodyScroll();
   document.getElementById('settings-modal').classList.add('show');
   document.body.classList.add('modal-open');
 }
@@ -1935,7 +1900,6 @@ function openSettings() {
 function closeSettings() {
   document.getElementById('settings-modal').classList.remove('show');
   document.body.classList.remove('modal-open');
-  setTimeout(window.__unlockBodyScroll, 300);
 }
 
 function closeSettingsOutside(e) {
