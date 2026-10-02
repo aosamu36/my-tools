@@ -45,7 +45,10 @@ body {
   padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
   -webkit-font-smoothing: antialiased;
 }
-body.modal-open { overflow: hidden; }
+body.modal-open {
+  overflow: hidden;
+  padding-bottom: 0;
+}
 
 /* ===== SPLASH ===== */
 .splash {
@@ -76,6 +79,10 @@ body.modal-open { overflow: hidden; }
   padding-right: 18px;
   padding-top: env(safe-area-inset-top);
   height: calc(52px + env(safe-area-inset-top));
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .header-logo {
   height: 38px;
@@ -122,6 +129,11 @@ body.modal-open { overflow: hidden; }
   display: flex;
   padding-bottom: env(safe-area-inset-bottom);
   height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .nav-btn {
   flex: 1;
@@ -368,10 +380,10 @@ body.modal-open { overflow: hidden; }
   border-radius: 20px 20px 0 0;
   width: 100%;
   padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
-  transform: translateY(100%);
+  transform: translate3d(0, 100%, 0);
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
-.dp-modal.show .dp-sheet { transform: translateY(0); }
+.dp-modal.show .dp-sheet { transform: translate3d(0, 0, 0); }
 .dp-title {
   text-align: center;
   font-size: 15px;
@@ -535,12 +547,12 @@ body.modal-open { overflow: hidden; }
   max-height: 80vh;
   overflow-y: auto;
   padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
-  transform: translateY(100%);
+  transform: translate3d(0, 100%, 0);
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
   touch-action: pan-y;
 }
-.detail-modal.show .detail-sheet { transform: translateY(0); }
+.detail-modal.show .detail-sheet { transform: translate3d(0, 0, 0); }
 .detail-handle {
   width: 36px;
   height: 4px;
@@ -623,10 +635,10 @@ body.modal-open { overflow: hidden; }
   max-height: 88vh;
   overflow-y: auto;
   padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
-  transform: translateY(100%);
+  transform: translate3d(0, 100%, 0);
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
-.settings-modal.show .settings-sheet { transform: translateY(0); }
+.settings-modal.show .settings-sheet { transform: translate3d(0, 0, 0); }
 .settings-header {
   padding: 20px 20px 12px;
   border-bottom: 1px solid var(--border);
@@ -1054,47 +1066,36 @@ body.modal-open { overflow: hidden; }
 
 <script>
 // ================================================================
-// iOS PWA: キーボード表示後のナビバーズレ修正
+// iOS PWA: モーダル表示中のスクロールロック（ナビのズレ対策）
+// モーダルを開いている間、bodyをposition:fixedで固定する。
 // ================================================================
 (function () {
-  function init() {
-    var nav = document.getElementById('main-nav');
-    if (!nav || !window.visualViewport) return;
-    var baseHeight = null;
-    var enabled = false;
+  var locked = false;
+  window.__savedY = 0;
 
-    window.visualViewport.addEventListener('resize', function () {
-      if (!enabled) return;
-      var vv = window.visualViewport;
-      var diff = baseHeight - vv.height;
-      if (diff > 100) {
-        nav.style.transition = 'none';
-        nav.style.transform = 'translateY(' + diff + 'px)';
-      } else {
-        nav.style.transition = 'transform 0.25s ease';
-        nav.style.transform = 'translateY(0)';
-        baseHeight = vv.height;
-      }
-    });
+  window.__lockBodyScroll = function () {
+    if (locked) return;
+    locked = true;
+    window.__savedY = window.scrollY || 0;
+    var s = document.body.style;
+    s.position = 'fixed';
+    s.top = (-window.__savedY) + 'px';
+    s.left = '0';
+    s.right = '0';
+    s.width = '100%';
+  };
 
-    window.addEventListener('orientationchange', function () {
-      setTimeout(function () {
-        baseHeight = window.visualViewport.height;
-        nav.style.transform = 'translateY(0)';
-      }, 300);
-    });
-
-    setTimeout(function () {
-      baseHeight = window.visualViewport.height;
-      enabled = true;
-    }, 2600);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  window.__unlockBodyScroll = function () {
+    if (!locked) return;
+    locked = false;
+    var s = document.body.style;
+    s.position = '';
+    s.top = '';
+    s.left = '';
+    s.right = '';
+    s.width = '';
+    window.scrollTo(0, window.__savedY);
+  };
 })();
 
 // ================================================================
@@ -1214,6 +1215,7 @@ function openDatePicker(prefix) {
 
   renderDpDayColumn(dpState.year, dpState.month, dpState.day);
 
+  window.__lockBodyScroll();
   document.getElementById('date-picker-modal').classList.add('show');
   document.body.classList.add('modal-open');
 }
@@ -1222,6 +1224,7 @@ function closeDatePicker(e) {
   if (!e || e.target === document.getElementById('date-picker-modal')) {
     document.getElementById('date-picker-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
+    setTimeout(window.__unlockBodyScroll, 300);
   }
 }
 
@@ -1414,6 +1417,7 @@ function showDetail(el) {
   document.getElementById('d-delete-btn').onclick = function () { closeDetail(); deleteItem(item.id); };
   document.getElementById('d-edit-btn').onclick   = function () { closeDetail(); editItem(item); };
 
+  window.__lockBodyScroll();
   document.getElementById('detail-modal').classList.add('show');
   document.body.classList.add('modal-open');
 
@@ -1427,6 +1431,7 @@ function closeDetail(e) {
   if (!e || e.target === document.getElementById('detail-modal')) {
     document.getElementById('detail-modal').classList.remove('show');
     document.body.classList.remove('modal-open');
+    setTimeout(window.__unlockBodyScroll, 300);
   }
 }
 
@@ -1447,6 +1452,7 @@ async function deleteItem(id) {
 function editItem(item) {
   var addBtn = document.querySelector('.nav-btn:nth-child(2)');
   showPage('add', addBtn);
+  window.__savedY = 0;
   document.getElementById('f-name').value     = item.name || '';
   setDpDate('f', item.date || todayIso());
   document.getElementById('f-app').value      = item.app || 'メルカリ';
@@ -1921,6 +1927,7 @@ function openSettings() {
     document.getElementById('settings-count').textContent = '件数：接続エラー';
   }
 
+  window.__lockBodyScroll();
   document.getElementById('settings-modal').classList.add('show');
   document.body.classList.add('modal-open');
 }
@@ -1928,6 +1935,7 @@ function openSettings() {
 function closeSettings() {
   document.getElementById('settings-modal').classList.remove('show');
   document.body.classList.remove('modal-open');
+  setTimeout(window.__unlockBodyScroll, 300);
 }
 
 function closeSettingsOutside(e) {
