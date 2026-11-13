@@ -143,7 +143,14 @@ body {
 <script>
 function getRedirectTarget() {
   var params = new URLSearchParams(window.location.search);
-  return params.get('redirect') || './';
+  var target = params.get('redirect') || './';
+  try {
+    var url = new URL(target, window.location.origin);
+    if (url.origin !== window.location.origin) return './';
+    return url.href;
+  } catch (e) {
+    return './';
+  }
 }
 
 function showError(msg) {

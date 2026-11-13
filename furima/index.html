@@ -1023,7 +1023,7 @@ body.modal-open {
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Gemini APIキーを入力してください。</p>
         <div class="form-group">
           <label class="form-label">Gemini API Key</label>
-          <input class="form-input" id="s-gemini" type="text" placeholder="AIza..."
+          <input class="form-input" id="s-gemini" type="password" placeholder="Gemini API Key"
             autocorrect="off" autocapitalize="off" spellcheck="false" autocomplete="new-password">
           <div style="margin-top:6px">
             <a style="color:var(--accent);font-size:12px;text-decoration:none"
@@ -1280,6 +1280,13 @@ function showPage(name, btn) {
   if (name === 'chart') renderChart();
 }
 
+function createTextElement(tagName, className, text) {
+  var element = document.createElement(tagName);
+  if (className) element.className = className;
+  element.textContent = text == null ? '' : String(text);
+  return element;
+}
+
 function changeMonth(d) {
   curMonth += d;
   if (curMonth > 12) { curMonth = 1; curYear++; }
@@ -1310,42 +1317,75 @@ async function renderHome() {
     }, 0));
     document.getElementById('month-count').textContent = mi.length + '件';
 
-    var appMap = {};
+    var appMap = Object.create(null);
     mi.forEach(function (i) {
       if (!appMap[i.app]) appMap[i.app] = { sales: 0, profit: 0 };
       appMap[i.app].sales  += +i.price || 0;
       appMap[i.app].profit += +i.profit || 0;
     });
-    document.getElementById('app-breakdown').innerHTML = Object.keys(appMap).length
-      ? Object.entries(appMap).map(function (e) {
-          return '<div class="app-row">'
-            + '<div style="font-size:14px;font-weight:600">' + e[0] + '</div>'
-            + '<div style="text-align:right">'
-            + '<div style="font-size:14px;font-weight:700">' + fmt(e[1].sales) + '</div>'
-            + '<div style="font-size:11px;color:var(--green)">利益 ' + fmt(e[1].profit) + '</div>'
-            + '</div></div>';
-        }).join('')
-      : '<div style="color:var(--muted);font-size:13px">データなし</div>';
+    var breakdown = document.getElementById('app-breakdown');
+    breakdown.replaceChildren();
+    var appNames = Object.keys(appMap);
+    if (appNames.length) {
+      appNames.forEach(function (appName) {
+        var stats = appMap[appName];
+        var row = createTextElement('div', 'app-row', '');
+        var name = createTextElement('div', '', appName);
+        name.style.cssText = 'font-size:14px;font-weight:600';
+        var values = document.createElement('div');
+        values.style.textAlign = 'right';
+        var sales = createTextElement('div', '', fmt(stats.sales));
+        sales.style.cssText = 'font-size:14px;font-weight:700';
+        var profit = createTextElement('div', '', '利益 ' + fmt(stats.profit));
+        profit.style.cssText = 'font-size:11px;color:var(--green)';
+        values.append(sales, profit);
+        row.append(name, values);
+        breakdown.appendChild(row);
+      });
+    } else {
+      var noApps = createTextElement('div', '', 'データなし');
+      noApps.style.cssText = 'color:var(--muted);font-size:13px';
+      breakdown.appendChild(noApps);
+    }
 
-    document.getElementById('item-list').innerHTML = mi.length
-      ? mi.map(function (i) {
-          var tagClass = APP_TAG_CLASS[i.app] || 'tag-other';
-          var d = new Date(i.date);
-          var itemJson = JSON.stringify(i).replace(/'/g, '&#39;');
-          return '<div class="item-card" onclick="showDetail(this)" data-item=\'' + itemJson + '\' style="cursor:pointer">'
-            + '<div class="item-info">'
-            + '<div class="item-name">' + i.name + '</div>'
-            + '<div class="item-sub"><span class="tag ' + tagClass + '">' + i.app + '</span>' + (d.getMonth() + 1) + '/' + d.getDate() + '</div>'
-            + '</div>'
-            + '<div class="item-price">'
-            + '<div class="item-sale-val">' + fmt(+i.price || 0) + '</div>'
-            + '<div class="item-profit-val">+' + fmt(+i.profit || 0) + '</div>'
-            + '</div></div>';
-        }).join('')
-      : '<div class="empty">'
+    var itemList = document.getElementById('item-list');
+    itemList.replaceChildren();
+    if (mi.length) {
+      mi.forEach(function (item) {
+        var tagClass = APP_TAG_CLASS[item.app] || 'tag-other';
+        var date = new Date(item.date);
+        var card = createTextElement('div', 'item-card', '');
+        card.style.cursor = 'pointer';
+        card.setAttribute('role', 'button');
+        card.tabIndex = 0;
+        card.addEventListener('click', function () { showDetail(item); });
+        card.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            showDetail(item);
+          }
+        });
+
+        var info = document.createElement('div');
+        info.className = 'item-info';
+        info.appendChild(createTextElement('div', 'item-name', item.name));
+        var sub = createTextElement('div', 'item-sub', '');
+        sub.appendChild(createTextElement('span', 'tag ' + tagClass, item.app));
+        sub.appendChild(document.createTextNode((date.getMonth() + 1) + '/' + date.getDate()));
+        info.appendChild(sub);
+
+        var price = createTextElement('div', 'item-price', '');
+        price.appendChild(createTextElement('div', 'item-sale-val', fmt(+item.price || 0)));
+        price.appendChild(createTextElement('div', 'item-profit-val', '+' + fmt(+item.profit || 0)));
+        card.append(info, price);
+        itemList.appendChild(card);
+      });
+    } else {
+      itemList.innerHTML = '<div class="empty">'
         + '<span class="material-icons-round" style="font-size:52px;color:var(--muted);display:block;text-align:center;margin-bottom:12px">inventory_2</span>'
         + '<div class="empty-text" style="text-align:center">まだ記録がありません<br>追加から登録してね</div>'
         + '</div>';
+    }
 
     st.textContent = 'DB ✓';
     st.className = 'db-badge db-ok';
@@ -1363,8 +1403,7 @@ async function renderHome() {
 // ================================================================
 // 詳細モーダル
 // ================================================================
-function showDetail(el) {
-  var item = JSON.parse(el.getAttribute('data-item').replace(/&#39;/g, "'"));
+function showDetail(item) {
   var tagClass = APP_TAG_CLASS[item.app] || 'tag-other';
   var d = new Date(item.date);
 
@@ -1570,6 +1609,10 @@ function toBase64(file) {
   });
 }
 
+function isSupportedImage(file) {
+  return file.size <= 10 * 1024 * 1024 && /^image\/(jpeg|png|webp|gif)$/.test(file.type);
+}
+
 // ================================================================
 // 追加ページ: 取引画像解析
 // ================================================================
@@ -1577,6 +1620,10 @@ async function handleImage(e) {
   var file = e.target.files[0];
   if (!file) return;
   e.target.value = '';
+  if (!isSupportedImage(file)) {
+    toast('JPEG・PNG・WebP・GIF形式の10MB以下の画像を選択してください', 'error');
+    return;
+  }
 
   var geminiKey = localStorage.getItem('gemini_key') || '';
   if (!geminiKey) { toast('⚙️設定からGemini APIキーを入力してください', 'error'); return; }
@@ -1596,10 +1643,10 @@ async function handleImage(e) {
         await new Promise(function (r) { setTimeout(r, 3000 * attempt); });
       }
       var res = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + geminiKey,
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiKey },
           body: JSON.stringify({
             contents: [{ parts: [
               { inline_data: { mime_type: 'image/jpeg', data: jpegBase64 } },
@@ -1690,9 +1737,16 @@ function handleCardImage(e) {
   var file = e.target.files[0];
   if (!file) return;
   e.target.value = '';
+  if (!isSupportedImage(file)) {
+    toast('JPEG・PNG・WebP・GIF形式の10MB以下の画像を選択してください', 'error');
+    return;
+  }
 
   var preview = document.getElementById('card-preview');
-  preview.src = URL.createObjectURL(file);
+  var previewUrl = URL.createObjectURL(file);
+  preview.onload = function () { URL.revokeObjectURL(previewUrl); };
+  preview.onerror = function () { URL.revokeObjectURL(previewUrl); };
+  preview.src = previewUrl;
   preview.classList.add('show');
 
   var area = document.getElementById('card-upload-area');
@@ -1727,10 +1781,10 @@ async function generateDescription() {
 
   try {
     var res = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + geminiKey,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiKey },
         body: JSON.stringify({
           contents: [{ parts: [
             { inline_data: { mime_type: 'image/jpeg', data: cardImageBase64 } },
@@ -1919,8 +1973,13 @@ function saveSettings() {
 // ================================================================
 (function () {
   setDpDate('f', todayIso());
-
-  renderHome();
+  requireAuth().then(function (session) {
+    if (session) renderHome();
+  }).catch(function () {
+    var status = document.getElementById('db-status');
+    status.textContent = '認証エラー';
+    status.className = 'db-badge db-err';
+  });
 
   // スプラッシュ非表示
   setTimeout(function () {
