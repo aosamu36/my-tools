@@ -830,9 +830,9 @@ body.modal-open {
         <label class="form-label">フリマアプリ</label>
         <select class="form-input" id="f-app" autocomplete="off" onchange="calcProfit()">
           <option>メルカリ</option>
-          <option>ラクマ</option>
+          <option>Yahoo!フリマ</option>
           <option>ヤフオク</option>
-          <option>PayPayフリマ</option>
+          <option>ラクマ</option>
           <option>その他</option>
         </select>
       </div>
@@ -1032,24 +1032,12 @@ body.modal-open {
     <div class="settings-body">
       <div class="card" style="margin-bottom:12px">
         <div class="section-label" style="margin-bottom:12px">Gemini API 設定</div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Gemini APIキーを入力してください。</p>
         <div class="form-group">
           <label class="form-label">Gemini API Key</label>
           <input class="form-input" id="s-gemini" type="password" placeholder="Gemini API Key"
             autocorrect="off" autocapitalize="off" spellcheck="false" autocomplete="new-password">
-          <div style="margin-top:6px">
-            <a style="color:var(--accent);font-size:12px;text-decoration:none"
-              href="https://aistudio.google.com/apikey" target="_blank">→ Google AI Studioで無料取得</a>
-          </div>
         </div>
         <button class="btn-primary" onclick="saveSettings()">設定を保存する</button>
-      </div>
-      <div class="card">
-        <div class="section-label" style="margin-bottom:8px">DB情報</div>
-        <div style="font-size:13px;color:var(--muted)">
-          <div id="settings-url" style="word-break:break-all;margin-bottom:4px"></div>
-          <div id="settings-count">件数：-</div>
-        </div>
       </div>
       <div class="card">
         <button class="btn-delete" style="width:100%" onclick="signOutAndRedirect('../login.html')">ログアウト</button>
