@@ -1671,7 +1671,7 @@ async function handleImage(e) {
           body: JSON.stringify({
             contents: [{ parts: [
               { inline_data: { mime_type: 'image/jpeg', data: jpegBase64 } },
-              { text: 'You are a data extraction assistant. Extract information from this Japanese flea market app transaction screenshot. Return ONLY a valid JSON object with no markdown, no backticks, no explanation. Use exactly this format: {"name":"item name in Japanese","date":"YYYY-MM-DD","app":"判別したアプリ名","price":0,"fee_amount":null,"shipping":null,"profit":null,"delivery_method":null}. Choose app exactly from メルカリ, Yahoo!フリマ, ヤフオク, ラクマ, その他. Detect Yahoo!フリマ from its branding or labels such as 売り上げ履歴, and use app exactly Yahoo!フリマ. For Yahoo!フリマ, extract the item name, sale price shown as 販売価格, and date shown as 購入日時. Extract fee, shipping amount, and delivery method only when explicitly shown; use null when not shown. For delivery_method, use the displayed shipping method name in Japanese. Use null for unknown values.' }
+              { text: 'You are a data extraction assistant. Extract information from this Japanese flea market app transaction screenshot. Return ONLY a valid JSON object with no markdown, no backticks, no explanation. Use exactly this format: {"name":"item name in Japanese","date":"YYYY-MM-DD","app":"判別したアプリ名","price":0,"fee_amount":null,"shipping":null,"profit":null,"delivery_method":null}. Choose app exactly from メルカリ, Yahoo!フリマ, ヤフオク, ラクマ, その他. For Mercari, return app exactly メルカリ when the screen shows the combination of 商品代金, 販売手数料, 販売利益, and 配送の方法 or 送料, even if its logo is not visible. For Yahoo!フリマ, detect its branding or labels such as 売り上げ履歴を見る and 販売価格, and return app exactly Yahoo!フリマ. For Yahoo!フリマ, extract the item name, sale price shown as 販売価格, and date shown as 購入日時. Extract fee, shipping amount, and delivery method only when explicitly shown; use null when not shown. For delivery_method, use the displayed shipping method name in Japanese. Use null for unknown values. Return その他 only when none of the supported apps can be identified.' }
             ]}],
             generationConfig: { temperature: 0, maxOutputTokens: 500, thinkingConfig: { thinkingBudget: 0 } }
           })
@@ -1699,6 +1699,9 @@ async function handleImage(e) {
       appName = keys.find(function (k) { return p.app.includes(k); }) || 'メルカリ';
       if (appName === 'Yahooフリマ' || appName === 'PayPayフリマ') appName = 'Yahoo!フリマ';
     }
+    var hasMercariFeeBreakdown = p.fee_amount != null && p.profit != null
+      && (p.shipping != null || p.delivery_method);
+    if (hasMercariFeeBreakdown) appName = 'メルカリ';
     document.getElementById('f-app').value = appName;
     if (p.price != null) document.getElementById('f-price').value = p.price;
 
