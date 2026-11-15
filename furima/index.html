@@ -504,11 +504,13 @@ body.modal-open {
   font-size: 13px;
   font-weight: 600;
   opacity: 0;
-  transition: all 0.25s;
+  transition: opacity 0.25s, transform 0.25s;
   pointer-events: none;
-  white-space: nowrap;
+  white-space: normal;
   z-index: 300;
-  max-width: calc(100vw - 40px);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  overflow-wrap: anywhere;
   text-align: center;
 }
 .toast.error { background: #e63262; }
@@ -1220,6 +1222,7 @@ var curMonth = new Date().getMonth() + 1;
 
 var FEE_RATES = {
   'メルカリ': 0.10,
+  'Yahoo!フリマ': 0.05,
   'ラクマ': 0.06,
   'ヤフオク': 0.10,
   'PayPayフリマ': 0.05,
@@ -1228,6 +1231,7 @@ var FEE_RATES = {
 
 var APP_TAG_CLASS = {
   'メルカリ': 'tag-mercari',
+  'Yahoo!フリマ': 'tag-yahoo',
   'ラクマ': 'tag-rakuma',
   'ヤフオク': 'tag-yahoo',
   'PayPayフリマ': 'tag-paypay'
@@ -1262,9 +1266,26 @@ function fmt(n) {
 function toast(msg, type) {
   var el = document.getElementById('toast');
   el.textContent = msg;
+  el.style.maxWidth = Math.max(0, document.documentElement.clientWidth - 32) + 'px';
   el.className = 'toast ' + (type || 'success') + ' show';
   clearTimeout(el._t);
   el._t = setTimeout(function () { el.classList.remove('show'); }, 2800);
+}
+
+function getAiErrorMessage(error, action) {
+  var message = error && typeof error.message === 'string'
+    ? error.message.toLowerCase()
+    : '';
+  if (message.includes('429') || message.includes('quota') || message.includes('rate limit')) {
+    return 'AIの利用上限に達しました。しばらく待ってからもう一度お試しください。';
+  }
+  if (message.includes('api key') || message.includes('api_key') || message.includes('unauthenticated')) {
+    return 'Gemini APIキーが正しくありません。設定を確認してください。';
+  }
+  if (message.includes('failed to fetch') || message.includes('network') || message.includes('load failed')) {
+    return '通信に失敗しました。ネットワークを確認してもう一度お試しください。';
+  }
+  return action + 'に失敗しました。画像や設定を確認してもう一度お試しください。';
 }
 
 // ================================================================
@@ -1511,7 +1532,7 @@ async function updateItem(oldId) {
     resetAddForm();
     renderHome();
   } catch (e) {
-    toast('更新失敗: ' + e.message, 'error');
+    toast('更新に失敗しました。通信状態を確認してもう一度お試しください。', 'error');
   }
 }
 
@@ -1579,7 +1600,7 @@ async function saveItem() {
     toast('保存しました！');
     resetAddForm();
   } catch (e) {
-    toast('保存失敗: ' + e.message, 'error');
+    toast('保存に失敗しました。通信状態を確認してもう一度お試しください。', 'error');
   }
 }
 
@@ -1650,7 +1671,7 @@ async function handleImage(e) {
           body: JSON.stringify({
             contents: [{ parts: [
               { inline_data: { mime_type: 'image/jpeg', data: jpegBase64 } },
-              { text: 'You are a data extraction assistant. Extract information from this Japanese flea market app transaction screenshot. Return ONLY a valid JSON object with no markdown, no backticks, no explanation. Use exactly this format: {"name":"item name in Japanese","date":"YYYY-MM-DD","app":"メルカリ","price":0,"fee_amount":0,"shipping":0,"profit":0,"delivery_method":"配送方法"} For delivery_method, extract the shipping method name in Japanese (e.g. ゆうゆうメルカリ便, らくらくメルカリ便, 普通郵便, ネコポス etc). Use null for unknown values.' }
+              { text: 'You are a data extraction assistant. Extract information from this Japanese flea market app transaction screenshot. Return ONLY a valid JSON object with no markdown, no backticks, no explanation. Use exactly this format: {"name":"item name in Japanese","date":"YYYY-MM-DD","app":"判別したアプリ名","price":0,"fee_amount":null,"shipping":null,"profit":null,"delivery_method":null}. Choose app exactly from メルカリ, Yahoo!フリマ, ヤフオク, ラクマ, その他. Detect Yahoo!フリマ from its branding or labels such as 売り上げ履歴, and use app exactly Yahoo!フリマ. For Yahoo!フリマ, extract the item name, sale price shown as 販売価格, and date shown as 購入日時. Extract fee, shipping amount, and delivery method only when explicitly shown; use null when not shown. For delivery_method, use the displayed shipping method name in Japanese. Use null for unknown values.' }
             ]}],
             generationConfig: { temperature: 0, maxOutputTokens: 500, thinkingConfig: { thinkingBudget: 0 } }
           })
@@ -1672,13 +1693,17 @@ async function handleImage(e) {
 
     if (p.name) document.getElementById('f-name').value = p.name;
     if (p.date) setDpDate('f', p.date);
+    var appName = 'メルカリ';
     if (p.app) {
-      var keys = ['メルカリ', 'ラクマ', 'ヤフオク', 'PayPayフリマ'];
-      document.getElementById('f-app').value = keys.find(function (k) { return p.app.includes(k); }) || 'メルカリ';
+      var keys = ['メルカリ', 'Yahoo!フリマ', 'Yahooフリマ', 'PayPayフリマ', 'ヤフオク', 'ラクマ', 'その他'];
+      appName = keys.find(function (k) { return p.app.includes(k); }) || 'メルカリ';
+      if (appName === 'Yahooフリマ' || appName === 'PayPayフリマ') appName = 'Yahoo!フリマ';
     }
+    document.getElementById('f-app').value = appName;
     if (p.price != null) document.getElementById('f-price').value = p.price;
 
-    var defaultShipping = (p.delivery_method && p.delivery_method.includes('ゆうゆう')) ? 180 : 85;
+    var defaultShipping = (appName === 'Yahoo!フリマ'
+      || (p.delivery_method && p.delivery_method.includes('ゆうゆう'))) ? 180 : 85;
     var shippingVal = (p.shipping != null && p.shipping > 0) ? p.shipping : defaultShipping;
     document.getElementById('f-shipping').value = shippingVal;
 
@@ -1697,11 +1722,7 @@ async function handleImage(e) {
     modal._t = setTimeout(function () { modal.classList.remove('show'); }, 2500);
 
   } catch (err) {
-    var m = err.message || '不明なエラー';
-    toast(
-      (m.includes('quota') || m.includes('429')) ? 'レート制限中。しばらく待ってください' : '解析失敗: ' + m.slice(0, 60),
-      'error'
-    );
+    toast(getAiErrorMessage(err, '画像解析'), 'error');
   } finally {
     area.classList.remove('analyzing');
     var icon = document.getElementById('upload-icon');
@@ -1825,7 +1846,7 @@ async function generateDescription() {
     window.scrollTo(0, document.body.scrollHeight);
 
   } catch (err) {
-    toast('生成失敗: ' + (err.message || '不明').slice(0, 60), 'error');
+    toast(getAiErrorMessage(err, '商品情報の生成'), 'error');
   } finally {
     btn.disabled = false;
     btn.innerHTML =
@@ -1937,16 +1958,6 @@ async function renderChart() {
 // ================================================================
 function openSettings() {
   document.getElementById('s-gemini').value = localStorage.getItem('gemini_key') || '';
-  document.getElementById('settings-url').textContent = SUPABASE_URL;
-
-  try {
-    dbGetAll().then(function (all) {
-      document.getElementById('settings-count').textContent = '件数：' + all.length + ' 件';
-    });
-  } catch (e) {
-    document.getElementById('settings-count').textContent = '件数：接続エラー';
-  }
-
   document.getElementById('settings-modal').classList.add('show');
   document.body.classList.add('modal-open');
 }
