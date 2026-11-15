@@ -1,17 +1,17 @@
 // 共通設定と固定データ
-var DATE_PICKER_ROW_HEIGHT = 36;
-var TOAST_DURATION_MS = 2800;
+const DATE_PICKER_ROW_HEIGHT = 36;
+const TOAST_DURATION_MS = 2800;
 
-var ITEMS_TABLE_NAME = 'furima_items';
-var GEMINI_KEY_STORAGE_KEY = 'gemini_key';
+const ITEMS_TABLE_NAME = 'furima_items';
+const GEMINI_KEY_STORAGE_KEY = 'gemini_key';
 
-var DEFAULT_FEE_RATE = 0.10;
-var DEFAULT_SHIPPING_COST = 85;
-var YAHOO_FLEA_SHIPPING_COST = 180;
-var MERCARI_YUUYU_SHIPPING_COST = 180;
-var DEFAULT_PACKING_COST = 10;
+const DEFAULT_FEE_RATE = 0.10;
+const DEFAULT_SHIPPING_COST = 85;
+const YAHOO_FLEA_SHIPPING_COST = 180;
+const MERCARI_YUUYU_SHIPPING_COST = 180;
+const DEFAULT_PACKING_COST = 10;
 
-var FEE_RATES = {
+const FEE_RATES = {
   'メルカリ': 0.10,
   'Yahoo!フリマ': 0.05,
   'ラクマ': 0.06,
@@ -20,7 +20,7 @@ var FEE_RATES = {
   'その他': 0.10
 };
 
-var APP_TAG_CLASS = {
+const APP_TAG_CLASS = {
   'メルカリ': 'tag-mercari',
   'Yahoo!フリマ': 'tag-yahoo',
   'ラクマ': 'tag-rakuma',
@@ -28,23 +28,23 @@ var APP_TAG_CLASS = {
   'PayPayフリマ': 'tag-paypay'
 };
 
-var SUPPORTED_APP_NAMES = ['メルカリ', 'Yahoo!フリマ', 'ヤフオク', 'ラクマ', 'その他'];
-var APP_NAME_ALIASES = {
+const SUPPORTED_APP_NAMES = ['メルカリ', 'Yahoo!フリマ', 'ヤフオク', 'ラクマ', 'その他'];
+const APP_NAME_ALIASES = {
   'メルカリ': ['メルカリ'],
   'Yahoo!フリマ': ['Yahoo!フリマ', 'Yahooフリマ', 'PayPayフリマ'],
   'ヤフオク': ['ヤフオク'],
   'ラクマ': ['ラクマ'],
   'その他': ['その他']
 };
-var MONTH_LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+const MONTH_LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
-var RARITIES = [
+const RARITIES = [
   'ノーマル', 'ノーレア', 'レア', 'スーパー', 'ウルトラ',
   'シークレット', 'レリーフ', 'ホログラフィック', 'パラレル',
   'ウルトラパラレル', '20th', '25th', 'プリズマ'
 ];
 
-var RARITY_MAP = {
+const RARITY_MAP = {
   'ノーマル':        { title: 'ノーマル',              desc: 'ノーマル' },
   'ノーレア':        { title: 'ノーレア',              desc: 'ノーマルレア' },
   'レア':            { title: 'レア',                  desc: 'レア' },
@@ -60,12 +60,12 @@ var RARITY_MAP = {
   'プリズマ':        { title: 'プリズマ プリシク',      desc: 'プリズマティックシークレットレア' }
 };
 
-var GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
-var GEMINI_IMAGE_RETRY_LIMIT = 3;
-var GEMINI_RETRY_DELAY_MS = 3000;
-var TRANSACTION_IMAGE_MAX_TOKENS = 500;
-var CARD_DESCRIPTION_MAX_TOKENS = 300;
-var TRANSACTION_IMAGE_PROMPT =
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+const GEMINI_IMAGE_RETRY_LIMIT = 3;
+const GEMINI_RETRY_DELAY_MS = 3000;
+const TRANSACTION_IMAGE_MAX_TOKENS = 500;
+const CARD_DESCRIPTION_MAX_TOKENS = 300;
+const TRANSACTION_IMAGE_PROMPT =
   'You are a data extraction assistant. Extract information from this Japanese flea market app transaction screenshot. ' +
   'Return ONLY a valid JSON object with no markdown, no backticks, no explanation. ' +
   'Use exactly this format: {"name":"item name in Japanese","date":"YYYY-MM-DD","app":"判別したアプリ名","price":0,"fee_amount":null,"shipping":null,"profit":null,"delivery_method":null}. ' +
@@ -78,7 +78,7 @@ var TRANSACTION_IMAGE_PROMPT =
   'Extract fee, shipping amount, and delivery method only when explicitly shown; use null when not shown. ' +
   'For delivery_method, use the displayed shipping method name in Japanese. Use null for unknown values. ' +
   'Return その他 only when none of the supported apps can be identified.';
-var CARD_DESCRIPTION_PROMPT =
+const CARD_DESCRIPTION_PROMPT =
   'これは遊戯王カードの画像です。以下の情報を読み取ってください。\n\n' +
   '読み取る情報：\n' +
   '- カード名（日本語）\n' +
@@ -88,8 +88,8 @@ var CARD_DESCRIPTION_PROMPT =
   '{"card_name":"カード名","card_number":"型番","card_count":1}\n\n' +
   '型番が読み取れない場合は card_number を null にしてください。';
 
-var MAX_IMAGE_FILE_SIZE = 10 * 1024 * 1024;
-var IMAGE_VALIDATION_MESSAGE = 'JPEG・PNG・WebP・GIF形式の10MB以下の画像を選択してください';
-var SUPPORTED_IMAGE_TYPE = /^image\/(jpeg|png|webp|gif)$/;
-var MAX_IMAGE_DIMENSION = 1200;
-var JPEG_QUALITY = 0.85;
+const MAX_IMAGE_FILE_SIZE = 10 * 1024 * 1024;
+const IMAGE_VALIDATION_MESSAGE = 'JPEG・PNG・WebP・GIF形式の10MB以下の画像を選択してください';
+const SUPPORTED_IMAGE_TYPE = /^image\/(jpeg|png|webp|gif)$/;
+const MAX_IMAGE_DIMENSION = 1200;
+const JPEG_QUALITY = 0.85;
